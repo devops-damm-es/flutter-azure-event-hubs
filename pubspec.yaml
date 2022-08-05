@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  js: 0.6.3
+  interactive_webview_null_safety: 0.2.4
+  kiwi: 3.0.0
 
 dev_dependencies:
   flutter_test:

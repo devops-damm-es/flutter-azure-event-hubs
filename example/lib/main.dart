@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
+import 'Crosscutting/container.dart' as IoC;
 
-void main() {
-  var eventHubProducerClient = new EventHubProducerClient(1);
+Future<void> main() async {
+  IoC.Container.setup();
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
+  var javascriptRepositoryService =
+      IoC.Container.resolve<IJavascriptRepositoryService>();
+  await javascriptRepositoryService.initialize();
 }
 
 class MyApp extends StatelessWidget {
