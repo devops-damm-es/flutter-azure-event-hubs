@@ -1,0 +1,21 @@
+name: flutter_azure_event_hubs
+description: Microsoft Azure Event Hubs NodeJs client wrapper for use in Flutter
+version: 1.0.0
+homepage: https://github.com/devops-damm-es/flutter-azure-event-hubs
+repository: https://github.com/devops-damm-es/flutter-azure-event-hubs
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  assets:
+    - assets/js/
