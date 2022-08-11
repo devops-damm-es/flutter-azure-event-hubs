@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
-import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
 // ignore: library_prefixes
 import 'Crosscutting/container.dart' as IoC;
 
 Future<void> main() async {
   IoC.Container.setup();
   WidgetsFlutterBinding.ensureInitialized();
-  var javascriptRepositoryService =
-      IoC.Container.resolve<IJavascriptRepositoryService>();
-  await javascriptRepositoryService.initialize();
+  var javascriptApplicationService =
+      IoC.Container.resolve<IJavascriptApplicationService>();
+  await javascriptApplicationService.initialize();
   runApp(const MyApp());
 }
 
@@ -68,11 +70,19 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-      var javascriptRepositoryService =
-          IoC.Container.resolve<IJavascriptRepositoryService>();
-      var javascriptTransaction = JavascriptTransaction(
-          _counter, "javascriptResult.postMessage('Test: OK');");
-      javascriptRepositoryService.executeJavascriptCode(javascriptTransaction);
+      var javascriptApplicationService =
+          IoC.Container.resolve<IJavascriptApplicationService>();
+
+      var javascriptResult = JavascriptResult(
+          _counter, JavascriptTransaction(_counter, "var a = 1;"), "OK");
+      var javascriptResultMapperService =
+          IoC.Container.resolve<IJavascriptResultMapperService>();
+      javascriptResultMapperService.toJson(javascriptResult).then((value) {
+        var javascriptTransaction = JavascriptTransaction(
+            _counter, "javascriptResult.postMessage('" + value + "');");
+        javascriptApplicationService
+            .executeJavascriptCode(javascriptTransaction);
+      });
     });
   }
 

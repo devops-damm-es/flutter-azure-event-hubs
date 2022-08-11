@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
 import 'package:interactive_webview/interactive_webview.dart';
@@ -5,7 +8,8 @@ import 'package:interactive_webview/interactive_webview.dart';
 class JavascriptRepositoryService extends IJavascriptRepositoryService {
   final interactiveWebView = InteractiveWebView();
 
-  Future<void> initialize() async {
+  Future<void> initialize(
+      StreamSink<String> javascriptMessageStringStreamSink) async {
     await interactiveWebView.loadHTML("<html><head></head><body></body></html>",
         baseUrl: "http://127.0.0.1");
 
@@ -23,7 +27,15 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
     }
 
     interactiveWebView.didReceiveMessage.listen((event) {
-      print("event.name: " + event.name + ", event.data: " + event.data);
+      compute(jsonEncode, event.data).then((value) {
+        javascriptMessageStringStreamSink.add(value);
+      }).onError((error, stackTrace) {
+        try {
+          javascriptMessageStringStreamSink.add(event.data);
+        } catch (_) {
+          print("Unknown javascript post message data type: " + event.data);
+        }
+      });
     });
   }
 

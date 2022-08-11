@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
 import './Web/JavascriptRepositoryService.dart'
@@ -8,8 +9,10 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
   final javascriptRepositoryService =
       new platform.JavascriptRepositoryService();
 
-  Future<void> initialize() async {
-    return javascriptRepositoryService.initialize();
+  Future<void> initialize(
+      StreamSink<String> javascriptMessageStringStreamSink) async {
+    return javascriptRepositoryService
+        .initialize(javascriptMessageStringStreamSink);
   }
 
   Future<void> executeJavascriptCode(
