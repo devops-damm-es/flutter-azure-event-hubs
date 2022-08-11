@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
+// ignore: library_prefixes
 import 'Crosscutting/container.dart' as IoC;
 
 Future<void> main() async {
   IoC.Container.setup();
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
   var javascriptRepositoryService =
       IoC.Container.resolve<IJavascriptRepositoryService>();
   await javascriptRepositoryService.initialize();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -29,13 +34,13 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -49,7 +54,7 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -63,6 +68,11 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
+      var javascriptRepositoryService =
+          IoC.Container.resolve<IJavascriptRepositoryService>();
+      var javascriptTransaction = JavascriptTransaction(
+          _counter, "javascriptResult.postMessage('Test: OK');");
+      javascriptRepositoryService.executeJavascriptCode(javascriptTransaction);
     });
   }
 
@@ -100,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+            const Text(
               'You have pushed the button this many times:',
             ),
             Text(
@@ -113,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

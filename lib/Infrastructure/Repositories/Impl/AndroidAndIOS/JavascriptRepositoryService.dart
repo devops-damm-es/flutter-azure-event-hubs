@@ -1,7 +1,6 @@
-import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
-import 'package:interactive_webview_null_safety/interactive_webview.dart';
+import 'package:interactive_webview/interactive_webview.dart';
 
 class JavascriptRepositoryService extends IJavascriptRepositoryService {
   final interactiveWebView = InteractiveWebView();
@@ -29,8 +28,7 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
   }
 
   Future<void> executeJavascriptCode(
-      JavascriptTransaction javascriptTransaction,
-      Stream<JavascriptResult> javascriptResultStream) async {
+      JavascriptTransaction javascriptTransaction) async {
     await interactiveWebView
         .evalJavascript(javascriptTransaction.javascriptCode);
   }
