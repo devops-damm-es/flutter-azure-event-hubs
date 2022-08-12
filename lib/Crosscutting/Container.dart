@@ -15,7 +15,9 @@ import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubProducerCl
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptDomainService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptClientLibraryRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
@@ -58,10 +60,13 @@ class Container {
     // Repository Services
     container.registerFactory<IEventDataMapperService>(
         (c) => new EventDataMapperService());
+    container.registerFactory<ISendBatchOptionsMapperService>(
+        (c) => new SendBatchOptionsMapperService());
 
     container.registerFactory<IEventHubProducerClientRepositoryService>((c) =>
         new EventHubProducerClientRepositoryService(
-            c.resolve<IEventDataMapperService>()));
+            c.resolve<IEventDataMapperService>(),
+            c.resolve<ISendBatchOptionsMapperService>()));
     container.registerFactory<IJavascriptClientLibraryRepositoryService>(
         (c) => new JavascriptClientLibraryRepositoryService());
     container.registerSingleton<IJavascriptRepositoryService>(

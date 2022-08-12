@@ -31,7 +31,7 @@ Future<void> main() async {
   eventDataList.add(EventData(Uuid().v4()));
   eventDataList.add(EventData(1));
   eventDataList.add(EventData(DateTime.now().toUtc().toString()));
-  await eventHubProducerClientApplicationService.sendBatch(
+  await eventHubProducerClientApplicationService.sendEventDataBatch(
       eventHubProducerClient, eventDataList);
   runApp(const MyApp());
 }

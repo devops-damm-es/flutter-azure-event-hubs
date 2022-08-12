@@ -2,6 +2,7 @@ import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientAppl
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SendBatchOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,6 +16,7 @@ class EventHubProducerClientApplicationService
       this._eventHubProducerClientDomainService,
       this._javascriptApplicationService);
 
+  @override
   Future<EventHubProducerClient> createEventHubProducerClient(
       String connectionString, String eventHubName) async {
     var eventHubProducerClient =
@@ -30,12 +32,14 @@ class EventHubProducerClientApplicationService
     return Future.value(eventHubProducerClient);
   }
 
-  Future<void> sendBatch(EventHubProducerClient eventHubProducerClient,
-      Iterable<EventData> eventDataList) async {
+  @override
+  Future<void> sendEventDataBatch(EventHubProducerClient eventHubProducerClient,
+      Iterable<EventData> eventDataList,
+      {SendBatchOptions? sendBatchOptions}) async {
     var sendBatchJavascriptTransaction =
         await _eventHubProducerClientDomainService.repositoryService
-            .getSendBatchJavascriptTransaction(
-                eventHubProducerClient, eventDataList);
+            .getSendEventDataBatchJavascriptTransaction(
+                eventHubProducerClient, eventDataList, sendBatchOptions);
 
     _javascriptApplicationService
         .executeJavascriptCode(sendBatchJavascriptTransaction);
