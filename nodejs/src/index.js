@@ -1,50 +1,50 @@
 const { EventHubProducerClient, EventHubConsumerClient } = require("@azure/event-hubs");
 
-eventHubProducerClient = EventHubProducerClient;
-eventHubConsumerClient = EventHubConsumerClient;
+flutterAzureEventHubs = {};
+flutterAzureEventHubs.eventHubProducerClient = EventHubProducerClient;
+flutterAzureEventHubs.eventHubConsumerClient = EventHubConsumerClient;
+flutterAzureEventHubs.instances = {};
+flutterAzureEventHubs.instances.eventHubProducerClient = [];
+flutterAzureEventHubs.instances.eventHubConsumerClient = [];
 
-var instances = {};
-instances.eventHubProducerClient = [];
-instances.eventHubConsumerClient = [];
-
-function setEventHubProducerClient(key, value) {
-    instances.eventHubProducerClient.push({ key: key, value: value });
+flutterAzureEventHubs.setEventHubProducerClient = function (key, value) {
+    flutterAzureEventHubs.instances.eventHubProducerClient.push({ key: key, value: value });
 }
 
-function getEventHubProducerClientByKey(key) {
-    for (var instance in instances.eventHubProducerClient) {
-        if (instance.key === key) {
-            return instance.value;
+flutterAzureEventHubs.getEventHubProducerClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.eventHubProducerClient.length; i++) {
+        if (flutterAzureEventHubs.instances.eventHubProducerClient[i].key === key) {
+            return flutterAzureEventHubs.instances.eventHubProducerClient[i].value;
         }
     }
 }
 
-function removeEventHubProducerClientByKey(key) {
-    for (var i = 0; i < instances.eventHubProducerClient.length; i++) {
-        if (instances.eventHubProducerClient[i].key === key) {
-            instances.eventHubProducerClient.splice(i, 1);
+flutterAzureEventHubs.removeEventHubProducerClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.eventHubProducerClient.length; i++) {
+        if (flutterAzureEventHubs.instances.eventHubProducerClient[i].key === key) {
+            flutterAzureEventHubs.instances.eventHubProducerClient.splice(i, 1);
             i--;
             break;
         }
     }
 }
 
-function setEventHubConsumerClient(key, value) {
-    instances.eventHubConsumerClient.push({ key: key, value: value });
+flutterAzureEventHubs.setEventHubConsumerClient = function (key, value) {
+    flutterAzureEventHubs.instances.eventHubConsumerClient.push({ key: key, value: value });
 }
 
-function getEventHubConsumerClientByKey(key) {
-    for (var instance in instances.eventHubConsumerClient) {
-        if (instance.key === key) {
-            return instance.value;
+flutterAzureEventHubs.getEventHubConsumerClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.eventHubConsumerClient.length; i++) {
+        if (flutterAzureEventHubs.instances.eventHubConsumerClient[i].key === key) {
+            return flutterAzureEventHubs.instances.eventHubConsumerClient[i].value;
         }
     }
 }
 
-function removeEventHubConsumerClientByKey(key) {
-    for (var i = 0; i < instances.eventHubConsumerClient.length; i++) {
-        if (instances.eventHubConsumerClient[i].key === key) {
-            instances.eventHubConsumerClient.splice(i, 1);
+flutterAzureEventHubs.removeEventHubConsumerClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.eventHubConsumerClient.length; i++) {
+        if (flutterAzureEventHubs.instances.eventHubConsumerClient[i].key === key) {
+            flutterAzureEventHubs.instances.eventHubConsumerClient.splice(i, 1);
             i--;
             break;
         }

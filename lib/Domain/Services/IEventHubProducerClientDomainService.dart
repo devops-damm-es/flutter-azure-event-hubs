@@ -1,0 +1,5 @@
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubProducerClientRepositoryService.dart';
+
+abstract class IEventHubProducerClientDomainService {
+  IEventHubProducerClientRepositoryService get repositoryService;
+}

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
@@ -19,6 +21,18 @@ Future<void> main() async {
   var javascriptClientLibraryApplicationService =
       IoC.Container.resolve<IJavascriptClientLibraryApplicationService>();
   await javascriptClientLibraryApplicationService.initialize();
+
+  var eventHubProducerClientApplicationService =
+      IoC.Container.resolve<IEventHubProducerClientApplicationService>();
+  var eventHubProducerClient = await eventHubProducerClientApplicationService
+      .createEventHubProducerClient("ConnectionString", "eventHubName");
+
+  var eventDataList = List<EventData>.empty(growable: true);
+  eventDataList.add(EventData(Uuid().v4()));
+  eventDataList.add(EventData(1));
+  eventDataList.add(EventData(DateTime.now().toUtc().toString()));
+  await eventHubProducerClientApplicationService.sendBatch(
+      eventHubProducerClient, eventDataList);
   runApp(const MyApp());
 }
 
