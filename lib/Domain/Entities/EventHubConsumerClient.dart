@@ -1,4 +1,4 @@
 class EventHubConsumerClient {
-  final int id;
+  final String id;
   EventHubConsumerClient(this.id);
 }

@@ -1,4 +1,4 @@
 class EventHubProducerClient {
-  final int id;
+  final String id;
   EventHubProducerClient(this.id);
 }

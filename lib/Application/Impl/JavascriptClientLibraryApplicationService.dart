@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
@@ -20,7 +21,7 @@ class JavascriptClientLibraryApplicationService
         .repositoryService
         .getJavascriptClientLibrary();
     var javascriptTransaction =
-        JavascriptTransaction(1, javascriptClientLibrary);
+        JavascriptTransaction(Uuid().v4(), javascriptClientLibrary);
     _javascriptApplicationService.executeJavascriptCode(javascriptTransaction);
   }
 }

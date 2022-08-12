@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
@@ -78,13 +79,14 @@ class _MyHomePageState extends State<MyHomePage> {
       var javascriptApplicationService =
           IoC.Container.resolve<IJavascriptApplicationService>();
 
-      var javascriptResult = JavascriptResult(
-          _counter, JavascriptTransaction(_counter, "var a = 1;"), "OK");
+      var id = Uuid().v4();
+      var javascriptResult =
+          JavascriptResult(id, JavascriptTransaction(id, "var a = 1;"), "OK");
       var javascriptResultMapperService =
           IoC.Container.resolve<IJavascriptResultMapperService>();
       javascriptResultMapperService.toJson(javascriptResult).then((value) {
         var javascriptTransaction = JavascriptTransaction(
-            _counter, "proxyInterop.postMessage('" + value + "');");
+            id, "proxyInterop.postMessage('" + value + "');");
         javascriptApplicationService
             .executeJavascriptCode(javascriptTransaction);
       });
