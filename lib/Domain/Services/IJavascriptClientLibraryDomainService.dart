@@ -1,0 +1,5 @@
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptClientLibraryRepositoryService.dart';
+
+abstract class IJavascriptClientLibraryDomainService {
+  IJavascriptClientLibraryRepositoryService get repositoryService;
+}

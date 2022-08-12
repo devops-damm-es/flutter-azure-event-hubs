@@ -9,7 +9,7 @@ import 'dart:html' as html;
 class JavascriptRepositoryService extends IJavascriptRepositoryService {
   Future<void> initialize(
       StreamSink<String> javascriptMessageStringStreamSink) async {
-    js.context.callMethod("eval", ["var javascriptResult = window.parent;"]);
+    js.context.callMethod("eval", ["var proxyInterop = window.parent;"]);
     html.window.onMessage.listen((event) {
       javascriptMessageStringStreamSink.add(event.data);
     });

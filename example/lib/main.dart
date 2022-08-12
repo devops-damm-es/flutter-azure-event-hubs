@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
@@ -13,6 +14,10 @@ Future<void> main() async {
   var javascriptApplicationService =
       IoC.Container.resolve<IJavascriptApplicationService>();
   await javascriptApplicationService.initialize();
+
+  var javascriptClientLibraryApplicationService =
+      IoC.Container.resolve<IJavascriptClientLibraryApplicationService>();
+  await javascriptClientLibraryApplicationService.initialize();
   runApp(const MyApp());
 }
 
@@ -79,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IoC.Container.resolve<IJavascriptResultMapperService>();
       javascriptResultMapperService.toJson(javascriptResult).then((value) {
         var javascriptTransaction = JavascriptTransaction(
-            _counter, "javascriptResult.postMessage('" + value + "');");
+            _counter, "proxyInterop.postMessage('" + value + "');");
         javascriptApplicationService
             .executeJavascriptCode(javascriptTransaction);
       });
