@@ -26,6 +26,7 @@ class EventHubProducerClientApplicationService
     var eventHubProducerClient =
         EventHubProducerClient(Uuid().v4(), connectionString, eventHubName);
 
+    var waitStreamController = StreamController<bool>();
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
         Uuid().v4(), javascriptResultStreamController.sink);
@@ -37,20 +38,18 @@ class EventHubProducerClientApplicationService
             .getCreateEventHubProducerClientJavascriptTransaction(
                 eventHubProducerClient);
 
-    var waitForResult = true;
     JavascriptResult? javascriptResult;
     javascriptResultStreamController.stream.listen((event) {
       if (event.javascriptTransactionId ==
           createEventHubProducerClientJavascriptTransaction.id) {
         javascriptResult = event;
-        waitForResult = false;
+        waitStreamController.sink.add(true);
       }
     });
     _javascriptApplicationService.executeJavascriptCode(
         createEventHubProducerClientJavascriptTransaction);
-    while (waitForResult) {
-      await Future.delayed(Duration(milliseconds: 100));
-    }
+    await waitStreamController.stream.first;
+    waitStreamController.close();
 
     _javascriptApplicationService
         .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
@@ -67,6 +66,7 @@ class EventHubProducerClientApplicationService
   Future<void> sendEventDataBatch(EventHubProducerClient eventHubProducerClient,
       Iterable<EventData> eventDataList,
       {SendBatchOptions? sendBatchOptions}) async {
+    var waitStreamController = StreamController<bool>();
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
         Uuid().v4(), javascriptResultStreamController.sink);
@@ -78,19 +78,17 @@ class EventHubProducerClientApplicationService
             .getSendEventDataBatchJavascriptTransaction(
                 eventHubProducerClient, eventDataList, sendBatchOptions);
 
-    var waitForResult = true;
     JavascriptResult? javascriptResult;
     javascriptResultStreamController.stream.listen((event) {
       if (event.javascriptTransactionId == sendBatchJavascriptTransaction.id) {
         javascriptResult = event;
-        waitForResult = false;
+        waitStreamController.sink.add(true);
       }
     });
     _javascriptApplicationService
         .executeJavascriptCode(sendBatchJavascriptTransaction);
-    while (waitForResult) {
-      await Future.delayed(Duration(milliseconds: 100));
-    }
+    await waitStreamController.stream.first;
+    waitStreamController.close();
 
     _javascriptApplicationService
         .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);

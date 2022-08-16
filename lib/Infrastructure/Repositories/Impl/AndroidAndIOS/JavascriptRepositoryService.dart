@@ -13,18 +13,17 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
     await interactiveWebView.loadHTML("<html><head></head><body></body></html>",
         baseUrl: "http://127.0.0.1");
 
-    bool didFinish = false;
+    var waitStreamController = StreamController<bool>();
     interactiveWebView.stateChanged.listen((state) async {
       if (state.type == WebViewState.didFinish) {
         await interactiveWebView.evalJavascript(
             "var proxyInterop = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;");
-        didFinish = true;
+        waitStreamController.sink.add(true);
       }
     });
 
-    while (didFinish == false) {
-      await Future.delayed(Duration(milliseconds: 200));
-    }
+    await waitStreamController.stream.first;
+    waitStreamController.close();
 
     interactiveWebView.didReceiveMessage.listen((event) {
       compute(jsonEncode, event.data).then((value) {
