@@ -33,6 +33,8 @@ Future<void> main() async {
     eventDataList.add(EventData(DateTime.now().toUtc().toString()));
     await eventHubProducerClientApplicationService.sendEventDataBatch(
         eventHubProducerClient, eventDataList);
+    await eventHubProducerClientApplicationService
+        .closeEventHubProducerClient(eventHubProducerClient);
   } catch (error) {
     var a = 1;
   }

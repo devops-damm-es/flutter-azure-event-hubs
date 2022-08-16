@@ -11,4 +11,7 @@ abstract class IEventHubProducerClientRepositoryService {
       EventHubProducerClient eventHubProducerClient,
       Iterable<EventData> eventDataList,
       SendBatchOptions? sendBatchOptions);
+  Future<JavascriptTransaction>
+      getCloseEventHubProducerClientJavascriptTransaction(
+          EventHubProducerClient eventHubProducerClient);
 }

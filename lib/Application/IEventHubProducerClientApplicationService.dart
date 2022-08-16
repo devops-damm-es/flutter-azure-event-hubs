@@ -8,4 +8,6 @@ abstract class IEventHubProducerClientApplicationService {
   Future<void> sendEventDataBatch(EventHubProducerClient eventHubProducerClient,
       Iterable<EventData> eventDataList,
       {SendBatchOptions? sendBatchOptions});
+  Future<void> closeEventHubProducerClient(
+      EventHubProducerClient eventHubProducerClient);
 }

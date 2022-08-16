@@ -63,7 +63,8 @@ class EventHubProducerClientRepositoryService
     var javascriptCode =
         "var eventHubProducerClientInstance = flutterAzureEventHubs.getEventHubProducerClientByKey('" +
             eventHubProducerClient.id +
-            "'); eventHubProducerClientInstance.sendBatch(" +
+            "'); if (eventHubProducerClientInstance != null) {" +
+            "eventHubProducerClientInstance.sendBatch(" +
             jsonEventDataList +
             ", " +
             jsonSendBatchOptions +
@@ -79,7 +80,50 @@ class EventHubProducerClientRepositoryService
             "\",\"javascriptTransactionId\":\"" +
             javascriptTransactionId +
             "\",\"success\":false,\"result\":\"' + error + '\"}');" +
-            "});";
+            "}); } else {" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":false,\"result\":\"ERROR: EventHubProducerClient not found.\"}');" +
+            "}";
+
+    var javascriptTransaction =
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
+    return Future.value(javascriptTransaction);
+  }
+
+  @override
+  Future<JavascriptTransaction>
+      getCloseEventHubProducerClientJavascriptTransaction(
+          EventHubProducerClient eventHubProducerClient) async {
+    var javascriptTransactionId = Uuid().v4();
+    var javascriptCode =
+        "var eventHubProducerClientInstance = flutterAzureEventHubs.getEventHubProducerClientByKey('" +
+            eventHubProducerClient.id +
+            "'); if (eventHubProducerClientInstance != null) {" +
+            " eventHubProducerClientInstance.close().then(function(value) {" +
+            "flutterAzureEventHubs.removeEventHubProducerClientByKey('" +
+            eventHubProducerClient.id +
+            "');" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":true,\"result\":\"\"}');" +
+            "}).catch(function(error) {" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":false,\"result\":\"' + error + '\"}');" +
+            "}); } else {" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":false,\"result\":\"ERROR: EventHubProducerClient not found.\"}');" +
+            "}";
 
     var javascriptTransaction =
         JavascriptTransaction(javascriptTransactionId, javascriptCode);
