@@ -28,7 +28,7 @@ class EventHubProducerClientApplicationService
 
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
-        eventHubProducerClient.id, javascriptResultStreamController.sink);
+        Uuid().v4(), javascriptResultStreamController.sink);
     _javascriptApplicationService
         .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
 
@@ -67,12 +67,37 @@ class EventHubProducerClientApplicationService
   Future<void> sendEventDataBatch(EventHubProducerClient eventHubProducerClient,
       Iterable<EventData> eventDataList,
       {SendBatchOptions? sendBatchOptions}) async {
+    var javascriptResultStreamController = StreamController<JavascriptResult>();
+    var javascriptResultStreamSink = JavascriptResultStreamSink(
+        Uuid().v4(), javascriptResultStreamController.sink);
+    _javascriptApplicationService
+        .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+
     var sendBatchJavascriptTransaction =
         await _eventHubProducerClientDomainService.repositoryService
             .getSendEventDataBatchJavascriptTransaction(
                 eventHubProducerClient, eventDataList, sendBatchOptions);
 
+    var waitForResult = true;
+    JavascriptResult? javascriptResult;
+    javascriptResultStreamController.stream.listen((event) {
+      if (event.javascriptTransactionId == sendBatchJavascriptTransaction.id) {
+        javascriptResult = event;
+        waitForResult = false;
+      }
+    });
     _javascriptApplicationService
         .executeJavascriptCode(sendBatchJavascriptTransaction);
+    while (waitForResult) {
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+
+    _javascriptApplicationService
+        .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+    javascriptResultStreamController.close();
+
+    if (javascriptResult!.success == false) {
+      throw new Exception(javascriptResult!.result);
+    }
   }
 }

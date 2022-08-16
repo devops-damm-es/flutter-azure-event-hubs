@@ -59,6 +59,7 @@ class EventHubProducerClientRepositoryService
           await _sendBatchOptionsMapperService.toJson(sendBatchOptions);
     }
 
+    var javascriptTransactionId = Uuid().v4();
     var javascriptCode =
         "var eventHubProducerClientInstance = flutterAzureEventHubs.getEventHubProducerClientByKey('" +
             eventHubProducerClient.id +
@@ -66,10 +67,22 @@ class EventHubProducerClientRepositoryService
             jsonEventDataList +
             ", " +
             jsonSendBatchOptions +
-            ");";
+            ").then(function(value) {" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":true,\"result\":\"\"}');" +
+            "}).catch(function(error) {" +
+            "proxyInterop.postMessage('{\"id\":\"" +
+            Uuid().v4() +
+            "\",\"javascriptTransactionId\":\"" +
+            javascriptTransactionId +
+            "\",\"success\":false,\"result\":\"' + error + '\"}');" +
+            "});";
 
     var javascriptTransaction =
-        JavascriptTransaction(Uuid().v4(), javascriptCode);
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
     return Future.value(javascriptTransaction);
   }
 }
