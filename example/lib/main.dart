@@ -24,15 +24,19 @@ Future<void> main() async {
 
   var eventHubProducerClientApplicationService =
       IoC.Container.resolve<IEventHubProducerClientApplicationService>();
-  var eventHubProducerClient = await eventHubProducerClientApplicationService
-      .createEventHubProducerClient("ConnectionString", "eventHubName");
+  try {
+    var eventHubProducerClient = await eventHubProducerClientApplicationService
+        .createEventHubProducerClient("connectionString", "eventHubName");
+    var eventDataList = List<EventData>.empty(growable: true);
+    eventDataList.add(EventData(Uuid().v4()));
+    eventDataList.add(EventData(1));
+    eventDataList.add(EventData(DateTime.now().toUtc().toString()));
+    await eventHubProducerClientApplicationService.sendEventDataBatch(
+        eventHubProducerClient, eventDataList);
+  } catch (error) {
+    var a = 1;
+  }
 
-  var eventDataList = List<EventData>.empty(growable: true);
-  eventDataList.add(EventData(Uuid().v4()));
-  eventDataList.add(EventData(1));
-  eventDataList.add(EventData(DateTime.now().toUtc().toString()));
-  await eventHubProducerClientApplicationService.sendEventDataBatch(
-      eventHubProducerClient, eventDataList);
   runApp(const MyApp());
 }
 
@@ -93,14 +97,15 @@ class _MyHomePageState extends State<MyHomePage> {
       var javascriptApplicationService =
           IoC.Container.resolve<IJavascriptApplicationService>();
 
-      var id = Uuid().v4();
+      var javascriptTransactionId = Uuid().v4();
       var javascriptResult =
-          JavascriptResult(id, JavascriptTransaction(id, "var a = 1;"), "OK");
+          JavascriptResult(Uuid().v4(), javascriptTransactionId, true, "OK");
       var javascriptResultMapperService =
           IoC.Container.resolve<IJavascriptResultMapperService>();
       javascriptResultMapperService.toJson(javascriptResult).then((value) {
         var javascriptTransaction = JavascriptTransaction(
-            id, "proxyInterop.postMessage('" + value + "');");
+            javascriptTransactionId,
+            "proxyInterop.postMessage('" + value + "');");
         javascriptApplicationService
             .executeJavascriptCode(javascriptTransaction);
       });

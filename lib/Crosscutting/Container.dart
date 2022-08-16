@@ -29,9 +29,8 @@ import 'package:kiwi/kiwi.dart' as kiwi;
 class Container {
   static void registerInKiwiContainer(kiwi.KiwiContainer container) {
     // Application Services
-    container.registerFactory<IJavascriptResultMapperService>((c) =>
-        new JavascriptResultMapperService(
-            c.resolve<IJavascriptTransactionMapperService>()));
+    container.registerFactory<IJavascriptResultMapperService>(
+        (c) => new JavascriptResultMapperService());
     container.registerFactory<IJavascriptTransactionMapperService>(
         (c) => new JavascriptTransactionMapperService());
 

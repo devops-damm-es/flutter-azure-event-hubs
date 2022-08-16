@@ -17,7 +17,7 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
     interactiveWebView.stateChanged.listen((state) async {
       if (state.type == WebViewState.didFinish) {
         await interactiveWebView.evalJavascript(
-            "const proxyInterop = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;");
+            "var proxyInterop = typeof webkit !== 'undefined' ? webkit.messageHandlers.native : window.native;");
         didFinish = true;
       }
     });

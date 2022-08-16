@@ -19,17 +19,30 @@ class EventHubProducerClientRepositoryService
   Future<JavascriptTransaction>
       getCreateEventHubProducerClientJavascriptTransaction(
           EventHubProducerClient eventHubProducerClient) async {
-    var javascriptCode =
+    var javascriptTransactionId = Uuid().v4();
+    var javascriptCode = "try {" +
         "var eventHubProducerClientInstance = new flutterAzureEventHubs.eventHubProducerClient('" +
-            eventHubProducerClient.connectionString +
-            "', '" +
-            eventHubProducerClient.eventHubName +
-            "'); flutterAzureEventHubs.setEventHubProducerClient('" +
-            eventHubProducerClient.id +
-            "', eventHubProducerClientInstance);";
+        eventHubProducerClient.connectionString +
+        "', '" +
+        eventHubProducerClient.eventHubName +
+        "'); flutterAzureEventHubs.setEventHubProducerClient('" +
+        eventHubProducerClient.id +
+        "', eventHubProducerClientInstance);" +
+        "proxyInterop.postMessage('{\"id\":\"" +
+        Uuid().v4() +
+        "\",\"javascriptTransactionId\":\"" +
+        javascriptTransactionId +
+        "\",\"success\":true,\"result\":\"\"}');"
+            "} catch (error) {" +
+        "proxyInterop.postMessage('{\"id\":\"" +
+        Uuid().v4() +
+        "\",\"javascriptTransactionId\":\"" +
+        javascriptTransactionId +
+        "\",\"success\":false,\"result\":\"' + error + '\"}');"
+            "}";
 
     var javascriptTransaction =
-        JavascriptTransaction(Uuid().v4(), javascriptCode);
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
     return Future.value(javascriptTransaction);
   }
 

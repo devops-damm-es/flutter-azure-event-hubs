@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResultStreamSink.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SendBatchOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
 import 'package:uuid/uuid.dart';
@@ -22,14 +26,41 @@ class EventHubProducerClientApplicationService
     var eventHubProducerClient =
         EventHubProducerClient(Uuid().v4(), connectionString, eventHubName);
 
+    var javascriptResultStreamController = StreamController<JavascriptResult>();
+    var javascriptResultStreamSink = JavascriptResultStreamSink(
+        eventHubProducerClient.id, javascriptResultStreamController.sink);
+    _javascriptApplicationService
+        .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+
     var createEventHubProducerClientJavascriptTransaction =
         await _eventHubProducerClientDomainService.repositoryService
             .getCreateEventHubProducerClientJavascriptTransaction(
                 eventHubProducerClient);
+
+    var waitForResult = true;
+    JavascriptResult? javascriptResult;
+    javascriptResultStreamController.stream.listen((event) {
+      if (event.javascriptTransactionId ==
+          createEventHubProducerClientJavascriptTransaction.id) {
+        javascriptResult = event;
+        waitForResult = false;
+      }
+    });
     _javascriptApplicationService.executeJavascriptCode(
         createEventHubProducerClientJavascriptTransaction);
+    while (waitForResult) {
+      await Future.delayed(Duration(milliseconds: 100));
+    }
 
-    return Future.value(eventHubProducerClient);
+    _javascriptApplicationService
+        .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+    javascriptResultStreamController.close();
+
+    if (javascriptResult!.success == true) {
+      return Future.value(eventHubProducerClient);
+    } else {
+      throw new Exception(javascriptResult!.result);
+    }
   }
 
   @override

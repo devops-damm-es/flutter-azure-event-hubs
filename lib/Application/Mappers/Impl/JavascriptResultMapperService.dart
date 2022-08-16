@@ -1,14 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
-import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptTransactionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
 import '../../../Crosscutting/JsonMapperService.dart';
 
 class JavascriptResultMapperService extends IJavascriptResultMapperService {
-  final IJavascriptTransactionMapperService _javascriptTransactionMapperService;
-
-  JavascriptResultMapperService(this._javascriptTransactionMapperService);
-
   @override
   Future<JavascriptResult> fromJson(String jsonString) async {
     var result = await compute(JsonMapperService.jsonDecode, jsonString);
@@ -18,11 +13,8 @@ class JavascriptResultMapperService extends IJavascriptResultMapperService {
 
   @override
   Future<JavascriptResult> fromMap(Map<String, dynamic> map) async {
-    var result = new JavascriptResult(
-        map["id"],
-        await _javascriptTransactionMapperService
-            .fromMap(map["javascriptTransaction"]),
-        map["result"]);
+    var result = new JavascriptResult(map["id"], map["javascriptTransactionId"],
+        map["success"], map["result"]);
     return Future.value(result);
   }
 
@@ -61,8 +53,8 @@ class JavascriptResultMapperService extends IJavascriptResultMapperService {
   Future<Map<String, dynamic>> toMap(JavascriptResult javascriptResult) async {
     var map = new Map<String, dynamic>();
     map["id"] = javascriptResult.id;
-    map["javascriptTransaction"] = await _javascriptTransactionMapperService
-        .toMap(javascriptResult.javascriptTransaction);
+    map["javascriptTransaction"] = javascriptResult.javascriptTransactionId;
+    map["success"] = javascriptResult.success;
     map["result"] = javascriptResult.result;
     return Future.value(map);
   }
