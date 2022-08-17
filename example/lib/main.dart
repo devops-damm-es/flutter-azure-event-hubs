@@ -4,6 +4,8 @@ import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientAppl
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
@@ -42,6 +44,10 @@ Future<void> main() async {
     eventHubConsumerClient = await eventHubConsumerClientApplicationService!
         .createEventHubConsumerClient(
             consumerGroup, connectionString, eventHubName);
+    var subscribeOptions = SubscribeOptions(
+        null, null, EventPosition(0, null, null, null), null, null, null);
+    var subscription = await eventHubConsumerClientApplicationService!
+        .subscribe(eventHubConsumerClient!, subscribeOptions: subscribeOptions);
   } catch (error) {
     var a = 1;
   }

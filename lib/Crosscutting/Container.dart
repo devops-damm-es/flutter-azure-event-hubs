@@ -98,8 +98,9 @@ class Container {
         new SubscribeOptionsMapperService(
             c.resolve<IEventPositionMapperService>()));
 
-    container.registerFactory<IEventHubConsumerClientRepositoryService>(
-        (c) => new EventHubConsumerClientRepositoryService());
+    container.registerFactory<IEventHubConsumerClientRepositoryService>((c) =>
+        new EventHubConsumerClientRepositoryService(
+            c.resolve<ISubscribeOptionsMapperService>()));
     container.registerFactory<IEventHubProducerClientRepositoryService>((c) =>
         new EventHubProducerClientRepositoryService(
             c.resolve<IEventDataMapperService>(),
