@@ -13,9 +13,7 @@ class SendBatchOptionsMapperService extends ISendBatchOptionsMapperService {
 
   @override
   Future<SendBatchOptions> fromMap(Map<String, dynamic> map) async {
-    var result = new SendBatchOptions();
-    result.partitionId = map["partitionId"];
-    result.partitionKey = map["partitionKey"];
+    var result = new SendBatchOptions(map["partitionId"], map["partitionKey"]);
     return Future.value(result);
   }
 

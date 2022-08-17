@@ -1,15 +1,25 @@
 import 'dart:async';
+import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
-import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptTransaction.dart';
 // ignore: library_prefixes
 import 'Crosscutting/container.dart' as IoC;
+
+IEventHubProducerClientApplicationService?
+    eventHubProducerClientApplicationService;
+IEventHubConsumerClientApplicationService?
+    eventHubConsumerClientApplicationService;
+String consumerGroup = "\$default";
+String connectionString = "connectionString";
+String eventHubName = "eventHubName";
+EventHubProducerClient? eventHubProducerClient;
+EventHubConsumerClient? eventHubConsumerClient;
 
 Future<void> main() async {
   IoC.Container.setup();
@@ -22,19 +32,16 @@ Future<void> main() async {
       IoC.Container.resolve<IJavascriptClientLibraryApplicationService>();
   await javascriptClientLibraryApplicationService.initialize();
 
-  var eventHubProducerClientApplicationService =
+  eventHubProducerClientApplicationService =
       IoC.Container.resolve<IEventHubProducerClientApplicationService>();
+  eventHubConsumerClientApplicationService =
+      IoC.Container.resolve<IEventHubConsumerClientApplicationService>();
   try {
-    var eventHubProducerClient = await eventHubProducerClientApplicationService
-        .createEventHubProducerClient("connectionString", "eventHubName");
-    var eventDataList = List<EventData>.empty(growable: true);
-    eventDataList.add(EventData(Uuid().v4()));
-    eventDataList.add(EventData(1));
-    eventDataList.add(EventData(DateTime.now().toUtc().toString()));
-    await eventHubProducerClientApplicationService.sendEventDataBatch(
-        eventHubProducerClient, eventDataList);
-    await eventHubProducerClientApplicationService
-        .closeEventHubProducerClient(eventHubProducerClient);
+    eventHubProducerClient = await eventHubProducerClientApplicationService!
+        .createEventHubProducerClient(connectionString, eventHubName);
+    eventHubConsumerClient = await eventHubConsumerClientApplicationService!
+        .createEventHubConsumerClient(
+            consumerGroup, connectionString, eventHubName);
   } catch (error) {
     var a = 1;
   }
@@ -87,6 +94,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  TextEditingController _eventHubProducerController = TextEditingController();
 
   void _incrementCounter() {
     setState(() {
@@ -96,20 +104,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-      var javascriptApplicationService =
-          IoC.Container.resolve<IJavascriptApplicationService>();
+      var eventDataList = List<EventData>.empty(growable: true);
+      eventDataList.add(EventData(Uuid().v4()));
+      eventDataList.add(EventData(1));
+      eventDataList.add(EventData(DateTime.now().toUtc().toString()));
 
-      var javascriptTransactionId = Uuid().v4();
-      var javascriptResult =
-          JavascriptResult(Uuid().v4(), javascriptTransactionId, true, "OK");
-      var javascriptResultMapperService =
-          IoC.Container.resolve<IJavascriptResultMapperService>();
-      javascriptResultMapperService.toJson(javascriptResult).then((value) {
-        var javascriptTransaction = JavascriptTransaction(
-            javascriptTransactionId,
-            "proxyInterop.postMessage('" + value + "');");
-        javascriptApplicationService
-            .executeJavascriptCode(javascriptTransaction);
+      eventHubProducerClientApplicationService!
+          .sendEventDataBatch(eventHubProducerClient!, eventDataList)
+          .then((value) {
+        _eventHubProducerController.text += "Send new data\n";
       });
     });
   }
@@ -148,6 +151,11 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            TextField(
+              controller: _eventHubProducerController,
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+            ),
             const Text(
               'You have pushed the button this many times:',
             ),
