@@ -3,6 +3,7 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/IIncomingEventMappe
 import 'package:flutter_azure_event_hubs/Application/Mappers/IPartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/ReceivedEventData.dart';
 import '../../../Crosscutting/JsonMapperService.dart';
 
 class IncomingEventMapperService extends IIncomingEventMapperService {
@@ -21,8 +22,16 @@ class IncomingEventMapperService extends IIncomingEventMapperService {
 
   @override
   Future<IncomingEvent> fromMap(Map<String, dynamic> map) async {
-    var result = new IncomingEvent(
-        await _receivedEventDataMapperService.fromMap(map["receivedEventData"]),
+    var receivedEventDataList =
+        new List<ReceivedEventData>.empty(growable: true);
+    var mappedResult =
+        List<Map<String, dynamic>>.from(map["receivedEventDataList"]);
+    for (var mappedResultEntry in mappedResult) {
+      var receivedEventData =
+          await _receivedEventDataMapperService.fromMap(mappedResultEntry);
+      receivedEventDataList.add(receivedEventData);
+    }
+    var result = new IncomingEvent(receivedEventDataList,
         await _partitionContextMapperService.fromMap(map["partitionContext"]));
     return Future.value(result);
   }
@@ -61,8 +70,13 @@ class IncomingEventMapperService extends IIncomingEventMapperService {
   @override
   Future<Map<String, dynamic>> toMap(IncomingEvent incomingEvent) async {
     var map = new Map<String, dynamic>();
-    map["receivedEventData"] = await _receivedEventDataMapperService
-        .toMap(incomingEvent.receivedEventData);
+    var mapList = new List<Map<String, dynamic>>.empty(growable: true);
+    for (var receivedEventData
+        in incomingEvent.receivedEventDataList.toList()) {
+      mapList
+          .add(await _receivedEventDataMapperService.toMap(receivedEventData));
+    }
+    map["receivedEventDataList"] = mapList;
     map["partitionContext"] = await _partitionContextMapperService
         .toMap(incomingEvent.partitionContext);
     return Future.value(map);
