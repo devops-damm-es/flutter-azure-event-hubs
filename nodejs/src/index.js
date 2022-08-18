@@ -6,6 +6,7 @@ flutterAzureEventHubs.eventHubConsumerClient = EventHubConsumerClient;
 flutterAzureEventHubs.instances = {};
 flutterAzureEventHubs.instances.eventHubProducerClient = [];
 flutterAzureEventHubs.instances.eventHubConsumerClient = [];
+flutterAzureEventHubs.api = {};
 
 flutterAzureEventHubs.setEventHubProducerClient = function (key, value) {
     flutterAzureEventHubs.instances.eventHubProducerClient.push({ key: key, value: value });
@@ -48,5 +49,202 @@ flutterAzureEventHubs.removeEventHubConsumerClientByKey = function (key) {
             i--;
             break;
         }
+    }
+}
+
+flutterAzureEventHubs.api.createEventHubProducerClient = function (
+    eventHubProducerClientId,
+    connectionString,
+    eventHubName,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    try {
+        var eventHubProducerClientInstance = new flutterAzureEventHubs.eventHubProducerClient(
+            connectionString,
+            eventHubName);
+        flutterAzureEventHubs.setEventHubProducerClient(
+            eventHubProducerClientId,
+            eventHubProducerClientInstance);
+
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: true,
+            result: ""
+        }));
+    } catch (error) {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: error.toString()
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.sendEventDataBatch = function (
+    eventHubProducerClientId,
+    eventDataList,
+    sendBatchOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var eventHubProducerClientInstance = flutterAzureEventHubs
+        .getEventHubProducerClientByKey(eventHubProducerClientId);
+
+    if (eventHubProducerClientInstance != null) {
+        eventHubProducerClientInstance
+            .sendBatch(eventDataList, sendBatchOptions)
+            .then(function () {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: ""
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: EventHubProducerClient not found."
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.closeEventHubProducerClient = function (
+    eventHubProducerClientId,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var eventHubProducerClientInstance = flutterAzureEventHubs
+        .getEventHubProducerClientByKey(eventHubProducerClientId);
+    if (eventHubProducerClientInstance != null) {
+        eventHubProducerClientInstance
+            .close()
+            .then(function () {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: ""
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: EventHubProducerClient not found."
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.createEventHubConsumerClient = function (
+    eventHubConsumerClientId,
+    consumerGroup,
+    connectionString,
+    eventHubName,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    try {
+        var eventHubConsumerClientInstance = new flutterAzureEventHubs.eventHubConsumerClient(
+            consumerGroup,
+            connectionString,
+            eventHubName);
+        flutterAzureEventHubs.setEventHubConsumerClient(
+            eventHubConsumerClientId,
+            eventHubConsumerClientInstance);
+
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: true,
+            result: ""
+        }));
+    } catch (error) {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: error.toString()
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.subscribe = function (
+    eventHubConsumerClientId,
+    subscribeOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var eventHubConsumerClientInstance = flutterAzureEventHubs
+        .getEventHubConsumerClientByKey(eventHubConsumerClientId);
+    if (eventHubConsumerClientInstance != null) {
+        eventHubConsumerClientInstance
+            .subscribe({
+                processEvents: function (receivedDataList, partitionContext) {
+                    for (var index in receivedDataList) {
+                        var incomingEvent = JSON.stringify({
+                            receivedEventData: {
+                                body: receivedDataList[index].body,
+                                enqueuedTimeUtc: receivedDataList[index].enqueuedTimeUtc,
+                                partitionKey: receivedDataList[index].partitionKey,
+                                offset: receivedDataList[index].offset,
+                                sequenceNumber: receivedDataList[index].sequenceNumber
+                            },
+                            partitionContext: {
+                                fullyQualifiedNamespace: partitionContext._context.fullyQualifiedNamespace,
+                                eventHubName: partitionContext._context.eventHubName,
+                                consumerGroup: partitionContext._context.consumerGroup,
+                                partitionId: partitionContext._context.partitionId
+                            }
+                        });
+                        proxyInterop.postMessage(JSON.stringify({
+                            id: javascriptResultId,
+                            javascriptTransactionId: javascriptTransactionId,
+                            success: true,
+                            result: incomingEvent
+                        }));
+                    }
+                },
+                processError: function (error) {
+                    proxyInterop.postMessage(JSON.stringify({
+                        id: javascriptResultId,
+                        javascriptTransactionId: javascriptTransactionId,
+                        success: false,
+                        result: error.toString()
+                    }));
+                }
+            }, subscribeOptions);
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: EventHubConsumerClient not found."
+        }));
     }
 }
