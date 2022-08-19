@@ -7,6 +7,7 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/Subscription.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
@@ -25,6 +26,7 @@ EventHubProducerClient? eventHubProducerClient;
 EventHubConsumerClient? eventHubConsumerClient;
 StreamController<IncomingEvent> incomingEventStreamController =
     StreamController<IncomingEvent>();
+Subscription? subscription;
 
 Future<void> main() async {
   IoC.Container.setup();
@@ -47,11 +49,6 @@ Future<void> main() async {
     eventHubConsumerClient = await eventHubConsumerClientApplicationService!
         .createEventHubConsumerClient(
             consumerGroup, connectionString, eventHubName);
-    var subscribeOptions = SubscribeOptions(
-        null, null, EventPosition(0, null, null, null), null, null, null);
-    var subscription = await eventHubConsumerClientApplicationService!
-        .subscribe(eventHubConsumerClient!, incomingEventStreamController.sink,
-            subscribeOptions: subscribeOptions);
   } catch (error) {
     var a = 1;
   }
@@ -139,6 +136,31 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _subscribe() {
+    setState(() {
+      var subscribeOptions = SubscribeOptions(
+          null, null, EventPosition(0, null, null, null), null, null, null);
+      eventHubConsumerClientApplicationService!
+          .subscribe(
+              eventHubConsumerClient!, incomingEventStreamController.sink,
+              subscribeOptions: subscribeOptions)
+          .then((value) {
+        subscription = value;
+        _eventHubProducerController.text += "Subcribe.\n";
+      });
+    });
+  }
+
+  void _closeSubscription() {
+    setState(() {
+      eventHubConsumerClientApplicationService!
+          .closeSubscription(subscription!)
+          .then((value) {
+        _eventHubProducerController.text += "Subscription closed.\n";
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -188,11 +210,28 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Increment',
+              child: const Icon(Icons.add),
+            ),
+            Container(height: 10),
+            FloatingActionButton(
+              onPressed: _subscribe,
+              tooltip: 'Subscribe',
+              child: const Icon(Icons.subscript),
+            ),
+            Container(height: 10),
+            FloatingActionButton(
+              onPressed: _closeSubscription,
+              tooltip: 'Close',
+              child: const Icon(Icons.close),
+            )
+          ]), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

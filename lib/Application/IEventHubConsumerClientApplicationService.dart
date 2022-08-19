@@ -11,4 +11,5 @@ abstract class IEventHubConsumerClientApplicationService {
   Future<Subscription> subscribe(EventHubConsumerClient eventHubConsumerClient,
       StreamSink<IncomingEvent> incomingEventStreamSink,
       {SubscribeOptions? subscribeOptions});
+  Future<void> closeSubscription(Subscription subscription);
 }

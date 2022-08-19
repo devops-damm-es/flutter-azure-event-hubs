@@ -96,7 +96,8 @@ class EventHubConsumerClientApplicationService
       _javascriptApplicationService.subscribeJavascriptResultStreamSink(
           javascriptResultIncomingEventStreamSink!);
     }
-    var subscription = Subscription(Uuid().v4(), incomingEventStreamSink);
+    var subscription = Subscription(
+        Uuid().v4(), eventHubConsumerClient.id, incomingEventStreamSink);
 
     var waitStreamController = StreamController<bool>();
     var javascriptResultStreamController = StreamController<JavascriptResult>();
@@ -129,6 +130,43 @@ class EventHubConsumerClientApplicationService
     if (javascriptResult!.success == true) {
       _subscriptionList.add(subscription);
       return Future.value(subscription);
+    } else {
+      throw new Exception(javascriptResult!.result);
+    }
+  }
+
+  @override
+  Future<void> closeSubscription(Subscription subscription) async {
+    var waitStreamController = StreamController<bool>();
+    var javascriptResultStreamController = StreamController<JavascriptResult>();
+    var javascriptResultStreamSink = JavascriptResultStreamSink(
+        Uuid().v4(), javascriptResultStreamController.sink);
+    _javascriptApplicationService
+        .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+
+    var closeSubscriptionJavascriptTransaction =
+        await _eventHubConsumerClientDomainService.repositoryService
+            .getCloseSubscriptionJavascriptTransaction(subscription);
+
+    JavascriptResult? javascriptResult;
+    javascriptResultStreamController.stream.listen((event) {
+      if (event.javascriptTransactionId ==
+          closeSubscriptionJavascriptTransaction.id) {
+        javascriptResult = event;
+        waitStreamController.sink.add(true);
+      }
+    });
+    _javascriptApplicationService
+        .executeJavascriptCode(closeSubscriptionJavascriptTransaction);
+    await waitStreamController.stream.first;
+    waitStreamController.close();
+
+    _javascriptApplicationService
+        .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+    javascriptResultStreamController.close();
+
+    if (javascriptResult!.success == true) {
+      _subscriptionList.removeWhere((element) => element.id == subscription.id);
     } else {
       throw new Exception(javascriptResult!.result);
     }

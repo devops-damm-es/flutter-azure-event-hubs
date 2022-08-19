@@ -65,4 +65,21 @@ class EventHubConsumerClientRepositoryService
         JavascriptTransaction(javascriptTransactionId, javascriptCode);
     return Future.value(javascriptTransaction);
   }
+
+  @override
+  Future<JavascriptTransaction> getCloseSubscriptionJavascriptTransaction(
+      Subscription subscription) async {
+    var javascriptTransactionId = Uuid().v4();
+    var javascriptCode = "flutterAzureEventHubs.api.closeSubscription('" +
+        subscription.id +
+        "', '" +
+        javascriptTransactionId +
+        "', '" +
+        Uuid().v4() +
+        "');";
+
+    var javascriptTransaction =
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
+    return Future.value(javascriptTransaction);
+  }
 }
