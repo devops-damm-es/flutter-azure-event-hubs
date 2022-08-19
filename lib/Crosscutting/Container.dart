@@ -6,11 +6,13 @@ import 'package:flutter_azure_event_hubs/Application/Impl/EventHubConsumerClient
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/JavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/JavascriptClientLibraryApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/IDateTimeMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IIncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptTransactionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IPartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/DateTimeMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/IncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTransactionMapperService.dart';
@@ -45,6 +47,8 @@ import 'package:kiwi/kiwi.dart' as kiwi;
 class Container {
   static void registerInKiwiContainer(kiwi.KiwiContainer container) {
     // Application Services
+    container.registerFactory<IDateTimeMapperService>(
+        (c) => new DateTimeMapperService());
     container.registerFactory<IIncomingEventMapperService>((c) =>
         new IncomingEventMapperService(
             c.resolve<IReceivedEventDataMapperService>(),
@@ -55,13 +59,15 @@ class Container {
         (c) => new JavascriptTransactionMapperService());
     container.registerFactory<IPartitionContextMapperService>(
         (c) => new PartitionContextMapperService());
-    container.registerFactory<IReceivedEventDataMapperService>(
-        (c) => new ReceivedEventDataMapperService());
+    container.registerFactory<IReceivedEventDataMapperService>((c) =>
+        new ReceivedEventDataMapperService(
+            c.resolve<IDateTimeMapperService>()));
 
     container.registerFactory<IEventHubConsumerClientApplicationService>((c) =>
         new EventHubConsumerClientApplicationService(
             c.resolve<IEventHubConsumerClientDomainService>(),
-            c.resolve<IJavascriptApplicationService>()));
+            c.resolve<IJavascriptApplicationService>(),
+            c.resolve<IIncomingEventMapperService>()));
     container.registerFactory<IEventHubProducerClientApplicationService>((c) =>
         new EventHubProducerClientApplicationService(
             c.resolve<IEventHubProducerClientDomainService>(),

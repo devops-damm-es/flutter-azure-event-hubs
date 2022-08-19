@@ -195,6 +195,7 @@ flutterAzureEventHubs.api.createEventHubConsumerClient = function (
 
 flutterAzureEventHubs.api.subscribe = function (
     eventHubConsumerClientId,
+    subscriptionId,
     subscribeOptions,
     javascriptTransactionId,
     javascriptResultId) {
@@ -202,42 +203,58 @@ flutterAzureEventHubs.api.subscribe = function (
     var eventHubConsumerClientInstance = flutterAzureEventHubs
         .getEventHubConsumerClientByKey(eventHubConsumerClientId);
     if (eventHubConsumerClientInstance != null) {
-        eventHubConsumerClientInstance
-            .subscribe({
-                processEvents: function (receivedDataList, partitionContext) {
-                    var incomingEvent = {};
-                    incomingEvent.receivedDataList = [];
-                    for (var index in receivedDataList) {
-                        incomingEvent.receivedDataList.push({
-                            body: receivedDataList[index].body,
-                            enqueuedTimeUtc: receivedDataList[index].enqueuedTimeUtc,
-                            partitionKey: receivedDataList[index].partitionKey,
-                            offset: receivedDataList[index].offset,
-                            sequenceNumber: receivedDataList[index].sequenceNumber
-                        });
+        try {
+            eventHubConsumerClientInstance
+                .subscribe({
+                    processEvents: function (receivedEventDataList, partitionContext) {
+                        var incomingEvent = {};
+                        incomingEvent.receivedEventDataList = [];
+                        for (var index in receivedEventDataList) {
+                            incomingEvent.receivedEventDataList.push({
+                                body: receivedEventDataList[index].body,
+                                enqueuedTimeUtc: receivedEventDataList[index].enqueuedTimeUtc,
+                                partitionKey: receivedEventDataList[index].partitionKey,
+                                offset: receivedEventDataList[index].offset,
+                                sequenceNumber: receivedEventDataList[index].sequenceNumber
+                            });
+                        }
+                        incomingEvent.partitionContext = {
+                            fullyQualifiedNamespace: partitionContext._context.fullyQualifiedNamespace,
+                            eventHubName: partitionContext._context.eventHubName,
+                            consumerGroup: partitionContext._context.consumerGroup,
+                            partitionId: partitionContext._context.partitionId
+                        };
+                        proxyInterop.postMessage(JSON.stringify({
+                            id: javascriptResultId,
+                            javascriptTransactionId: subscriptionId,
+                            success: true,
+                            result: JSON.stringify(incomingEvent)
+                        }));
+                    },
+                    processError: function (error) {
+                        proxyInterop.postMessage(JSON.stringify({
+                            id: javascriptResultId,
+                            javascriptTransactionId: subscriptionId,
+                            success: false,
+                            result: error.toString()
+                        }));
                     }
-                    incomingEvent.partitionContext = {
-                        fullyQualifiedNamespace: partitionContext._context.fullyQualifiedNamespace,
-                        eventHubName: partitionContext._context.eventHubName,
-                        consumerGroup: partitionContext._context.consumerGroup,
-                        partitionId: partitionContext._context.partitionId
-                    };
-                    proxyInterop.postMessage(JSON.stringify({
-                        id: javascriptResultId,
-                        javascriptTransactionId: javascriptTransactionId,
-                        success: true,
-                        result: JSON.stringify(incomingEvent)
-                    }));
-                },
-                processError: function (error) {
-                    proxyInterop.postMessage(JSON.stringify({
-                        id: javascriptResultId,
-                        javascriptTransactionId: javascriptTransactionId,
-                        success: false,
-                        result: error.toString()
-                    }));
-                }
-            }, subscribeOptions);
+                }, subscribeOptions);
+
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: true,
+                result: ""
+            }));
+        } catch (error) {
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: false,
+                result: error.toString()
+            }));
+        }
     }
     else {
         proxyInterop.postMessage(JSON.stringify({

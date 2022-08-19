@@ -5,6 +5,7 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ String connectionString = "connectionString";
 String eventHubName = "eventHubName";
 EventHubProducerClient? eventHubProducerClient;
 EventHubConsumerClient? eventHubConsumerClient;
+StreamController<IncomingEvent> incomingEventStreamController =
+    StreamController<IncomingEvent>();
 
 Future<void> main() async {
   IoC.Container.setup();
@@ -47,7 +50,8 @@ Future<void> main() async {
     var subscribeOptions = SubscribeOptions(
         null, null, EventPosition(0, null, null, null), null, null, null);
     var subscription = await eventHubConsumerClientApplicationService!
-        .subscribe(eventHubConsumerClient!, subscribeOptions: subscribeOptions);
+        .subscribe(eventHubConsumerClient!, incomingEventStreamController.sink,
+            subscribeOptions: subscribeOptions);
   } catch (error) {
     var a = 1;
   }
@@ -101,6 +105,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   TextEditingController _eventHubProducerController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    incomingEventStreamController.stream.listen((event) {
+      setState(() {
+        _eventHubProducerController.text += "Receive new data: " +
+            event.receivedEventDataList.first.body.toString() +
+            "\n";
+      });
+    });
+  }
 
   void _incrementCounter() {
     setState(() {

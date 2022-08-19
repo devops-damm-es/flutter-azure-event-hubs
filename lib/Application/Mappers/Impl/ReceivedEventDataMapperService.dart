@@ -1,9 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/IDateTimeMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/ReceivedEventData.dart';
 import '../../../Crosscutting/JsonMapperService.dart';
 
 class ReceivedEventDataMapperService extends IReceivedEventDataMapperService {
+  final IDateTimeMapperService _dateTimeMapperService;
+
+  ReceivedEventDataMapperService(this._dateTimeMapperService);
+
   @override
   Future<ReceivedEventData> fromJson(String jsonString) async {
     var result = await compute(JsonMapperService.jsonDecode, jsonString);
@@ -13,8 +18,12 @@ class ReceivedEventDataMapperService extends IReceivedEventDataMapperService {
 
   @override
   Future<ReceivedEventData> fromMap(Map<String, dynamic> map) async {
-    var result = new ReceivedEventData(map["body"], map["enqueuedTimeUtc"],
-        map["partitionKey"], map["offset"], map["sequenceNumber"]);
+    var result = new ReceivedEventData(
+        map["body"],
+        await _dateTimeMapperService.toDateTimeUtc(map["enqueuedTimeUtc"]),
+        map["partitionKey"],
+        map["offset"],
+        map["sequenceNumber"]);
     return Future.value(result);
   }
 
@@ -54,7 +63,8 @@ class ReceivedEventDataMapperService extends IReceivedEventDataMapperService {
       ReceivedEventData receivedEventData) async {
     var map = new Map<String, dynamic>();
     map["body"] = receivedEventData.body;
-    map["enqueuedTimeUtc"] = receivedEventData.enqueuedTimeUtc;
+    map["enqueuedTimeUtc"] = await _dateTimeMapperService
+        .toStringDateTimeUtc(receivedEventData.enqueuedTimeUtc);
     map["partitionKey"] = receivedEventData.partitionKey;
     map["offset"] = receivedEventData.offset;
     map["sequenceNumber"] = receivedEventData.sequenceNumber;
