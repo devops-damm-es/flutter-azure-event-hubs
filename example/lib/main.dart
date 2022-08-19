@@ -44,8 +44,6 @@ Future<void> main() async {
   eventHubConsumerClientApplicationService =
       IoC.Container.resolve<IEventHubConsumerClientApplicationService>();
   try {
-    eventHubProducerClient = await eventHubProducerClientApplicationService!
-        .createEventHubProducerClient(connectionString, eventHubName);
     eventHubConsumerClient = await eventHubConsumerClientApplicationService!
         .createEventHubConsumerClient(
             consumerGroup, connectionString, eventHubName);
@@ -74,9 +72,9 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Azure Event Hubs'),
     );
   }
 }
@@ -100,38 +98,48 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   TextEditingController _eventHubProducerController = TextEditingController();
+  TextEditingController _eventHubConsumerController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     incomingEventStreamController.stream.listen((event) {
       setState(() {
-        _eventHubProducerController.text += "Receive new data: " +
-            event.receivedEventDataList.first.body.toString() +
-            "\n";
+        if (event.receivedEventDataList.isNotEmpty) {
+          _eventHubConsumerController.text += "Receive new event: " +
+              event.receivedEventDataList.first.body.toString() +
+              "\n";
+        }
       });
     });
   }
 
-  void _incrementCounter() {
+  void _sendEventDataBatch() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-      var eventDataList = List<EventData>.empty(growable: true);
-      eventDataList.add(EventData(Uuid().v4()));
-      eventDataList.add(EventData(1));
-      eventDataList.add(EventData(DateTime.now().toUtc().toString()));
-
       eventHubProducerClientApplicationService!
-          .sendEventDataBatch(eventHubProducerClient!, eventDataList)
+          .createEventHubProducerClient(connectionString, eventHubName)
           .then((value) {
-        _eventHubProducerController.text += "Send new data\n";
+        _eventHubProducerController.text +=
+            "Create new EventHubProducerClient.\n";
+        eventHubProducerClient = value;
+
+        var eventDataList = List<EventData>.empty(growable: true);
+        eventDataList.add(EventData(Uuid().v4()));
+        eventDataList.add(EventData(1));
+        eventDataList.add(EventData(DateTime.now().toUtc().toString()));
+
+        eventHubProducerClientApplicationService!
+            .sendEventDataBatch(eventHubProducerClient!, eventDataList)
+            .then((value) {
+          _eventHubProducerController.text += "Send new events.\n";
+          eventHubProducerClientApplicationService!
+              .closeEventHubProducerClient(eventHubProducerClient!)
+              .then((value) {
+            _eventHubProducerController.text +=
+                "Close EventHubProducerClient.\n";
+          });
+        });
       });
     });
   }
@@ -146,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
               subscribeOptions: subscribeOptions)
           .then((value) {
         subscription = value;
-        _eventHubProducerController.text += "Subcribe.\n";
+        _eventHubConsumerController.text += "Subcribe.\n";
       });
     });
   }
@@ -156,82 +164,55 @@ class _MyHomePageState extends State<MyHomePage> {
       eventHubConsumerClientApplicationService!
           .closeSubscription(subscription!)
           .then((value) {
-        _eventHubProducerController.text += "Subscription closed.\n";
+        _eventHubConsumerController.text += "Subscription closed.\n";
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _eventHubProducerController,
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-            ),
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        appBar: AppBar(
+          title: Text(widget.title),
         ),
-      ),
-      floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
-              child: const Icon(Icons.add),
-            ),
-            Container(height: 10),
-            FloatingActionButton(
-              onPressed: _subscribe,
-              tooltip: 'Subscribe',
-              child: const Icon(Icons.subscript),
-            ),
-            Container(height: 10),
-            FloatingActionButton(
-              onPressed: _closeSubscription,
-              tooltip: 'Close',
-              child: const Icon(Icons.close),
-            )
-          ]), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextField(
+                  decoration: InputDecoration(labelText: 'Events sended:'),
+                  controller: _eventHubProducerController,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null),
+              TextField(
+                  decoration: InputDecoration(labelText: 'Events received:'),
+                  controller: _eventHubConsumerController,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null)
+            ],
+          ),
+        ),
+        floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              FloatingActionButton(
+                onPressed: _sendEventDataBatch,
+                tooltip: 'Send Event Data',
+                child: const Icon(Icons.send),
+              ),
+              Container(height: 10),
+              FloatingActionButton(
+                onPressed: _subscribe,
+                tooltip: 'Subscribe',
+                child: const Icon(Icons.subscript),
+              ),
+              Container(height: 10),
+              FloatingActionButton(
+                onPressed: _closeSubscription,
+                tooltip: 'Close',
+                child: const Icon(Icons.close),
+              )
+            ]));
   }
 }
