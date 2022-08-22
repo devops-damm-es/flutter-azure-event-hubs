@@ -85,8 +85,9 @@ class _MyHomePageState extends State<MyHomePage> {
       eventHubProducerClientApplicationService!
           .createEventHubProducerClient(connectionString, eventHubName)
           .then((value) {
-        _eventHubProducerController.text +=
-            "Create new EventHubProducerClient.\n";
+        _eventHubProducerController.text = DateTime.now().toString() +
+            ": Create new EventHubProducerClient.\n" +
+            _eventHubProducerController.text;
         eventHubProducerClient = value;
 
         var eventDataList = List<EventData>.empty(growable: true);
@@ -97,12 +98,15 @@ class _MyHomePageState extends State<MyHomePage> {
         eventHubProducerClientApplicationService!
             .sendEventDataBatch(eventHubProducerClient!, eventDataList)
             .then((value) {
-          _eventHubProducerController.text += "Send new events.\n";
+          _eventHubProducerController.text = DateTime.now().toString() +
+              ": Send new events.\n" +
+              _eventHubProducerController.text;
           eventHubProducerClientApplicationService!
               .closeEventHubProducerClient(eventHubProducerClient!)
               .then((value) {
-            _eventHubProducerController.text +=
-                "Close EventHubProducerClient.\n";
+            _eventHubProducerController.text = DateTime.now().toString() +
+                ": Close EventHubProducerClient.\n" +
+                _eventHubProducerController.text;
           });
         });
       });
@@ -116,9 +120,11 @@ class _MyHomePageState extends State<MyHomePage> {
         incomingEventStreamController!.stream.listen((event) {
           setState(() {
             if (event.receivedEventDataList.isNotEmpty) {
-              _eventHubConsumerController.text += "Receive new event: " +
+              _eventHubConsumerController.text = DateTime.now().toString() +
+                  ": Receive new event: " +
                   event.receivedEventDataList.first.body.toString() +
-                  "\n";
+                  "\n" +
+                  _eventHubConsumerController.text;
             }
           });
         });
@@ -130,10 +136,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 subscribeOptions: subscribeOptions)
             .then((value) {
           subscription = value;
-          _eventHubConsumerController.text += "Subscribe.\n";
+          _eventHubConsumerController.text = DateTime.now().toString() +
+              ": Subscribe.\n" +
+              _eventHubConsumerController.text;
         });
       } else {
-        _eventHubConsumerController.text += "Already subscribed.\n";
+        _eventHubConsumerController.text = DateTime.now().toString() +
+            ": Already subscribed.\n" +
+            _eventHubConsumerController.text;
       }
     });
   }
@@ -146,7 +156,9 @@ class _MyHomePageState extends State<MyHomePage> {
         incomingEventStreamController!.close().then((value) {
           incomingEventStreamController = null;
           subscription = null;
-          _eventHubConsumerController.text += "Subscription closed.\n";
+          _eventHubConsumerController.text = DateTime.now().toString() +
+              ": Subscription closed.\n" +
+              _eventHubConsumerController.text;
         });
       });
     });
@@ -154,24 +166,48 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var appBar = AppBar(
+      title: Text(widget.title),
+    );
+    var width = MediaQuery.of(context).size.width;
+    var height =
+        MediaQuery.of(context).size.height - appBar.preferredSize.height;
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: Center(
+        appBar: appBar,
+        body: Container(
+          width: width,
+          height: height,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              TextField(
-                  decoration: InputDecoration(labelText: 'Events sended:'),
-                  controller: _eventHubProducerController,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null),
-              TextField(
-                  decoration: InputDecoration(labelText: 'Events received:'),
-                  controller: _eventHubConsumerController,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null)
+              Container(
+                  width: width,
+                  height: height / 2,
+                  padding: EdgeInsets.all(appBar.preferredSize.height / 5),
+                  child: TextField(
+                      decoration: InputDecoration(
+                          labelText: 'Events sended:',
+                          border: OutlineInputBorder()),
+                      controller: _eventHubProducerController,
+                      keyboardType: TextInputType.multiline,
+                      textAlignVertical: TextAlignVertical.top,
+                      expands: true,
+                      readOnly: true,
+                      maxLines: null)),
+              Container(
+                  width: width,
+                  height: height / 2,
+                  padding: EdgeInsets.all(appBar.preferredSize.height / 5),
+                  child: TextField(
+                      decoration: InputDecoration(
+                          labelText: 'Events received:',
+                          border: OutlineInputBorder()),
+                      controller: _eventHubConsumerController,
+                      keyboardType: TextInputType.multiline,
+                      textAlignVertical: TextAlignVertical.top,
+                      expands: true,
+                      readOnly: true,
+                      maxLines: null))
             ],
           ),
         ),
