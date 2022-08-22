@@ -22,6 +22,7 @@ class JavascriptClientLibraryApplicationService
         .getJavascriptClientLibrary();
     var javascriptTransaction =
         JavascriptTransaction(Uuid().v4(), javascriptClientLibrary);
-    _javascriptApplicationService.executeJavascriptCode(javascriptTransaction);
+    await _javascriptApplicationService
+        .executeJavascriptCode(javascriptTransaction);
   }
 }

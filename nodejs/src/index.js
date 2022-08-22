@@ -229,7 +229,7 @@ flutterAzureEventHubs.api.subscribe = function (
         .getEventHubConsumerClientByKey(eventHubConsumerClientId);
     if (eventHubConsumerClientInstance != null) {
         try {
-            var subscription = eventHubConsumerClientInstance
+            var subscriptionInstance = eventHubConsumerClientInstance
                 .subscribe({
                     processEvents: function (receivedEventDataList, partitionContext) {
                         var incomingEvent = {};
@@ -268,7 +268,7 @@ flutterAzureEventHubs.api.subscribe = function (
 
             flutterAzureEventHubs.setSubscription(
                 subscriptionId,
-                subscription);
+                subscriptionInstance);
 
             proxyInterop.postMessage(JSON.stringify({
                 id: javascriptResultId,

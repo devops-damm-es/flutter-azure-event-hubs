@@ -27,10 +27,12 @@ class JavascriptApplicationService extends IJavascriptApplicationService {
         _javascriptResultStreamSinkList.forEach((element) {
           element.javascriptResultStreamSink.add(javascriptResult);
         });
-      } catch (_) {}
+      } catch (error) {
+        print("ERROR: " + error.toString());
+      }
       print("JavascriptMessageString event: " + event);
     });
-    _javascriptDomainService.repositoryService
+    await _javascriptDomainService.repositoryService
         .initialize(_javascriptMessageStringStreamController.sink);
   }
 
@@ -50,12 +52,12 @@ class JavascriptApplicationService extends IJavascriptApplicationService {
   @override
   Future<void> executeJavascriptCode(
       JavascriptTransaction javascriptTransaction) async {
-    _javascriptDomainService.repositoryService
+    await _javascriptDomainService.repositoryService
         .executeJavascriptCode(javascriptTransaction);
   }
 
   @override
   Future<void> finalize() async {
-    _javascriptMessageStringStreamController.close();
+    await _javascriptMessageStringStreamController.close();
   }
 }

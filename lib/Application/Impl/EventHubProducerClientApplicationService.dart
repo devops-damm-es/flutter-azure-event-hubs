@@ -46,14 +46,14 @@ class EventHubProducerClientApplicationService
         waitStreamController.sink.add(true);
       }
     });
-    _javascriptApplicationService.executeJavascriptCode(
+    await _javascriptApplicationService.executeJavascriptCode(
         createEventHubProducerClientJavascriptTransaction);
     await waitStreamController.stream.first;
-    waitStreamController.close();
+    await waitStreamController.close();
 
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
-    javascriptResultStreamController.close();
+    await javascriptResultStreamController.close();
 
     if (javascriptResult!.success == true) {
       return Future.value(eventHubProducerClient);
@@ -70,7 +70,7 @@ class EventHubProducerClientApplicationService
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
         Uuid().v4(), javascriptResultStreamController.sink);
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
 
     var sendBatchJavascriptTransaction =
@@ -85,14 +85,14 @@ class EventHubProducerClientApplicationService
         waitStreamController.sink.add(true);
       }
     });
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .executeJavascriptCode(sendBatchJavascriptTransaction);
     await waitStreamController.stream.first;
-    waitStreamController.close();
+    await waitStreamController.close();
 
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
-    javascriptResultStreamController.close();
+    await javascriptResultStreamController.close();
 
     if (javascriptResult!.success == false) {
       throw new Exception(javascriptResult!.result);
@@ -106,7 +106,7 @@ class EventHubProducerClientApplicationService
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
         Uuid().v4(), javascriptResultStreamController.sink);
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
 
     var closeEventHubProducerClientJavascriptTransaction =
@@ -122,14 +122,14 @@ class EventHubProducerClientApplicationService
         waitStreamController.sink.add(true);
       }
     });
-    _javascriptApplicationService.executeJavascriptCode(
+    await _javascriptApplicationService.executeJavascriptCode(
         closeEventHubProducerClientJavascriptTransaction);
     await waitStreamController.stream.first;
-    waitStreamController.close();
+    await waitStreamController.close();
 
-    _javascriptApplicationService
+    await _javascriptApplicationService
         .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
-    javascriptResultStreamController.close();
+    await javascriptResultStreamController.close();
 
     if (javascriptResult!.success == false) {
       throw new Exception(javascriptResult!.result);
