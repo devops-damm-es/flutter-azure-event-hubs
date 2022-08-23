@@ -171,7 +171,64 @@ class EventHubConsumerClientApplicationService
 
     if (javascriptResult!.success == true) {
       _subscriptionList.removeWhere((element) => element.id == subscription.id);
-      if (_subscriptionList.isEmpty) {
+      if (_subscriptionList.isEmpty &&
+          _javascriptResultIncomingEventStreamSink != null &&
+          _javascriptResultIncomingEventStreamController != null) {
+        await _javascriptApplicationService
+            .unsubscribeJavascriptResultStreamSink(
+                _javascriptResultIncomingEventStreamSink!);
+        await _javascriptResultIncomingEventStreamController!.close();
+        _javascriptResultIncomingEventStreamController = null;
+        _javascriptResultIncomingEventStreamSink = null;
+      }
+    } else {
+      throw new Exception(javascriptResult!.result);
+    }
+  }
+
+  @override
+  Future<void> closeEventHubConsumerClient(
+      EventHubConsumerClient eventHubConsumerClient) async {
+    var waitStreamController = StreamController<bool>();
+    var javascriptResultStreamController = StreamController<JavascriptResult>();
+    var javascriptResultStreamSink = JavascriptResultStreamSink(
+        Uuid().v4(), javascriptResultStreamController.sink);
+    await _javascriptApplicationService
+        .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+
+    var subscriptionList = _subscriptionList
+        .where((element) =>
+            element.eventHubConsumerClientId == eventHubConsumerClient.id)
+        .toList();
+
+    var closeEventHubConsumerClientJavascriptTransaction =
+        await _eventHubConsumerClientDomainService.repositoryService
+            .getCloseEventHubConsumerClientJavascriptTransaction(
+                eventHubConsumerClient, subscriptionList);
+
+    JavascriptResult? javascriptResult;
+    javascriptResultStreamController.stream.listen((event) {
+      if (event.javascriptTransactionId ==
+          closeEventHubConsumerClientJavascriptTransaction.id) {
+        javascriptResult = event;
+        waitStreamController.sink.add(true);
+      }
+    });
+    await _javascriptApplicationService.executeJavascriptCode(
+        closeEventHubConsumerClientJavascriptTransaction);
+    await waitStreamController.stream.first;
+    await waitStreamController.close();
+
+    await _javascriptApplicationService
+        .unsubscribeJavascriptResultStreamSink(javascriptResultStreamSink);
+    await javascriptResultStreamController.close();
+
+    if (javascriptResult!.success == true) {
+      _subscriptionList.removeWhere((element) =>
+          element.eventHubConsumerClientId == eventHubConsumerClient.id);
+      if (_subscriptionList.isEmpty &&
+          _javascriptResultIncomingEventStreamSink != null &&
+          _javascriptResultIncomingEventStreamController != null) {
         await _javascriptApplicationService
             .unsubscribeJavascriptResultStreamSink(
                 _javascriptResultIncomingEventStreamSink!);

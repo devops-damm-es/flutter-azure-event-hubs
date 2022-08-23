@@ -332,3 +332,46 @@ flutterAzureEventHubs.api.closeSubscription = function (
         }));
     }
 }
+
+flutterAzureEventHubs.api.closeEventHubConsumerClient = function (
+    eventHubConsumerClientId,
+    subscriptionIdList,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var eventHubConsumerClientInstance = flutterAzureEventHubs
+        .getEventHubConsumerClientByKey(eventHubConsumerClientId);
+    if (eventHubConsumerClientInstance != null) {
+        eventHubConsumerClientInstance
+            .close()
+            .then(function () {
+                for (var index in subscriptionIdList) {
+                    flutterAzureEventHubs.removeSubscriptionByKey(subscriptionIdList[index]);
+                }
+                flutterAzureEventHubs.removeEventHubConsumerClientByKey(eventHubConsumerClientId);
+
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: ""
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: EventHubConsumerClient not found."
+        }));
+    }
+}

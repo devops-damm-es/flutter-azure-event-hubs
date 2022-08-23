@@ -13,4 +13,8 @@ abstract class IEventHubConsumerClientRepositoryService {
       SubscribeOptions? subscribeOptions);
   Future<JavascriptTransaction> getCloseSubscriptionJavascriptTransaction(
       Subscription subscription);
+  Future<JavascriptTransaction>
+      getCloseEventHubConsumerClientJavascriptTransaction(
+          EventHubConsumerClient eventHubConsumerClient,
+          Iterable<Subscription> subscriptionList);
 }

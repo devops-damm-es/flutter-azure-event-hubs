@@ -42,14 +42,6 @@ Future<void> main() async {
       IoC.Container.resolve<IEventHubProducerClientApplicationService>();
   eventHubConsumerClientApplicationService =
       IoC.Container.resolve<IEventHubConsumerClientApplicationService>();
-  try {
-    eventHubConsumerClient = await eventHubConsumerClientApplicationService!
-        .createEventHubConsumerClient(
-            consumerGroup, connectionString, eventHubName);
-  } catch (error) {
-    var a = 1;
-  }
-
   runApp(const MyApp());
 }
 
@@ -86,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .createEventHubProducerClient(connectionString, eventHubName)
           .then((value) {
         _eventHubProducerController.text = DateTime.now().toString() +
-            ": Create new EventHubProducerClient.\n" +
+            ": EventHubProducerClient created.\n" +
             _eventHubProducerController.text;
         eventHubProducerClient = value;
 
@@ -105,11 +97,31 @@ class _MyHomePageState extends State<MyHomePage> {
               .closeEventHubProducerClient(eventHubProducerClient!)
               .then((value) {
             _eventHubProducerController.text = DateTime.now().toString() +
-                ": Close EventHubProducerClient.\n" +
+                ": EventHubProducerClient closed.\n" +
                 _eventHubProducerController.text;
           });
         });
       });
+    });
+  }
+
+  void _createEventHubConsumerClient() {
+    setState(() {
+      if (eventHubConsumerClient == null) {
+        eventHubConsumerClientApplicationService!
+            .createEventHubConsumerClient(
+                consumerGroup, connectionString, eventHubName)
+            .then((value) {
+          eventHubConsumerClient = value;
+          _eventHubConsumerController.text = DateTime.now().toString() +
+              ": EventHubConsumerClient created.\n" +
+              _eventHubConsumerController.text;
+        });
+      } else {
+        _eventHubConsumerController.text = DateTime.now().toString() +
+            ": EventHubConsumerClient already created.\n" +
+            _eventHubConsumerController.text;
+      }
     });
   }
 
@@ -160,6 +172,30 @@ class _MyHomePageState extends State<MyHomePage> {
               ": Subscription closed.\n" +
               _eventHubConsumerController.text;
         });
+      });
+    });
+  }
+
+  void _closeEventHubConsumerClient() {
+    setState(() {
+      eventHubConsumerClientApplicationService!
+          .closeEventHubConsumerClient(eventHubConsumerClient!)
+          .then((value) {
+        if (incomingEventStreamController != null) {
+          incomingEventStreamController!.close().then((value) {
+            incomingEventStreamController = null;
+            subscription = null;
+            eventHubConsumerClient = null;
+            _eventHubConsumerController.text = DateTime.now().toString() +
+                ": EventHubConsumerClient closed.\n" +
+                _eventHubConsumerController.text;
+          });
+        } else {
+          eventHubConsumerClient = null;
+          _eventHubConsumerController.text = DateTime.now().toString() +
+              ": EventHubConsumerClient closed.\n" +
+              _eventHubConsumerController.text;
+        }
       });
     });
   }
@@ -222,6 +258,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Container(height: 10),
               FloatingActionButton(
+                onPressed: _createEventHubConsumerClient,
+                tooltip: 'Create Event Hub Consumer Client',
+                child: const Icon(Icons.create),
+              ),
+              Container(height: 10),
+              FloatingActionButton(
                 onPressed: _subscribe,
                 tooltip: 'Subscribe',
                 child: const Icon(Icons.subscript),
@@ -229,8 +271,14 @@ class _MyHomePageState extends State<MyHomePage> {
               Container(height: 10),
               FloatingActionButton(
                 onPressed: _closeSubscription,
-                tooltip: 'Close',
+                tooltip: 'Close Subscription',
                 child: const Icon(Icons.close),
+              ),
+              Container(height: 10),
+              FloatingActionButton(
+                onPressed: _closeEventHubConsumerClient,
+                tooltip: 'Close Event Hub Consumer Client',
+                child: const Icon(Icons.remove),
               )
             ]));
   }

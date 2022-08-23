@@ -82,4 +82,37 @@ class EventHubConsumerClientRepositoryService
         JavascriptTransaction(javascriptTransactionId, javascriptCode);
     return Future.value(javascriptTransaction);
   }
+
+  @override
+  Future<JavascriptTransaction>
+      getCloseEventHubConsumerClientJavascriptTransaction(
+          EventHubConsumerClient eventHubConsumerClient,
+          Iterable<Subscription> subscriptionList) async {
+    var subscriptionIdList = "[]";
+    if (subscriptionList.isNotEmpty) {
+      subscriptionIdList = "[";
+      for (var subscription in subscriptionList) {
+        subscriptionIdList += "'" + subscription.id + "',";
+      }
+      subscriptionIdList =
+          subscriptionIdList.substring(0, subscriptionIdList.length - 1);
+      subscriptionIdList += "]";
+    }
+
+    var javascriptTransactionId = Uuid().v4();
+    var javascriptCode =
+        "flutterAzureEventHubs.api.closeEventHubConsumerClient('" +
+            eventHubConsumerClient.id +
+            "', " +
+            subscriptionIdList +
+            ", '" +
+            javascriptTransactionId +
+            "', '" +
+            Uuid().v4() +
+            "');";
+
+    var javascriptTransaction =
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
+    return Future.value(javascriptTransaction);
+  }
 }
