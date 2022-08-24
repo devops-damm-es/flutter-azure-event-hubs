@@ -2,10 +2,12 @@ import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientAppl
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/JavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/JavascriptClientLibraryApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/Impl/SchemaRegistryClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IDateTimeMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IIncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
@@ -22,26 +24,32 @@ import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubConsumerClient
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptDomainService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/ISchemaRegistryClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptDomainService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/Impl/SchemaRegistryClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventPositionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventPositionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptClientLibraryRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/ISchemaRegistryClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/JavascriptClientLibraryRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/JavascriptRepositoryService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/SchemaRegistryClientRepositoryService.dart';
 import 'package:kiwi/kiwi.dart' as kiwi;
 
 class Container {
@@ -79,6 +87,10 @@ class Container {
         new JavascriptClientLibraryApplicationService(
             c.resolve<IJavascriptClientLibraryDomainService>(),
             c.resolve<IJavascriptApplicationService>()));
+    container.registerFactory<ISchemaRegistryClientApplicationService>((c) =>
+        new SchemaRegistryClientApplicationService(
+            c.resolve<ISchemaRegistryClientDomainService>(),
+            c.resolve<IJavascriptApplicationService>()));
 
     // Domain Services
     container.registerFactory<IEventHubConsumerClientDomainService>((c) =>
@@ -87,17 +99,22 @@ class Container {
     container.registerFactory<IEventHubProducerClientDomainService>((c) =>
         new EventHubProducerClientDomainService(
             c.resolve<IEventHubProducerClientRepositoryService>()));
-    container.registerSingleton<IJavascriptClientLibraryDomainService>((c) =>
+    container.registerFactory<IJavascriptClientLibraryDomainService>((c) =>
         new JavascriptClientLibraryDomainService(
             c.resolve<IJavascriptClientLibraryRepositoryService>()));
     container.registerSingleton<IJavascriptDomainService>((c) =>
         new JavascriptDomainService(c.resolve<IJavascriptRepositoryService>()));
+    container.registerFactory<ISchemaRegistryClientDomainService>((c) =>
+        new SchemaRegistryClientDomainService(
+            c.resolve<ISchemaRegistryClientRepositoryService>()));
 
     // Repository Services
     container.registerFactory<IEventDataMapperService>(
         (c) => new EventDataMapperService());
     container.registerFactory<IEventPositionMapperService>(
         (c) => new EventPositionMapperService());
+    container.registerFactory<ISchemaRegistryClientOptionsMapperService>(
+        (c) => new SchemaRegistryClientOptionsMapperService());
     container.registerFactory<ISendBatchOptionsMapperService>(
         (c) => new SendBatchOptionsMapperService());
     container.registerFactory<ISubscribeOptionsMapperService>((c) =>
@@ -115,5 +132,8 @@ class Container {
         (c) => new JavascriptClientLibraryRepositoryService());
     container.registerSingleton<IJavascriptRepositoryService>(
         (c) => new JavascriptRepositoryService());
+    container.registerFactory<ISchemaRegistryClientRepositoryService>((c) =>
+        new SchemaRegistryClientRepositoryService(
+            c.resolve<ISchemaRegistryClientOptionsMapperService>()));
   }
 }

@@ -28,9 +28,10 @@
   "homepage": "https://github.com/devops-damm-es/flutter-azure-event-hubs#readme",
   "sideEffects": false,
   "dependencies": {
-    "polyfill-crypto.getrandomvalues": "^1.0.0",
     "@azure/event-hubs": "^5.0.0",
-    "@azure/identity": "^1.0.2"
+    "@azure/identity": "^1.0.2",
+    "@azure/schema-registry": "^1.1.0",
+    "polyfill-crypto.getrandomvalues": "^1.0.0"
   },
   "devDependencies": {
     "http-server": "^0.12.1",

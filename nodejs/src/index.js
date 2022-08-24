@@ -1,12 +1,15 @@
 const { EventHubProducerClient, EventHubConsumerClient } = require("@azure/event-hubs");
+const { SchemaRegistryClient } = require("@azure/schema-registry");
 
 flutterAzureEventHubs = {};
 flutterAzureEventHubs.eventHubProducerClient = EventHubProducerClient;
 flutterAzureEventHubs.eventHubConsumerClient = EventHubConsumerClient;
+flutterAzureEventHubs.schemaRegistryClient = SchemaRegistryClient;
 flutterAzureEventHubs.instances = {};
 flutterAzureEventHubs.instances.eventHubProducerClientList = [];
 flutterAzureEventHubs.instances.eventHubConsumerClientList = [];
 flutterAzureEventHubs.instances.subscriptionList = [];
+flutterAzureEventHubs.instances.schemaRegistryClientList = [];
 flutterAzureEventHubs.api = {};
 
 flutterAzureEventHubs.setEventHubProducerClient = function (key, value) {
@@ -69,6 +72,28 @@ flutterAzureEventHubs.removeSubscriptionByKey = function (key) {
     for (var i = 0; i < flutterAzureEventHubs.instances.subscriptionList.length; i++) {
         if (flutterAzureEventHubs.instances.subscriptionList[i].key === key) {
             flutterAzureEventHubs.instances.subscriptionList.splice(i, 1);
+            i--;
+            break;
+        }
+    }
+}
+
+flutterAzureEventHubs.setSchemaRegistryClient = function (key, value) {
+    flutterAzureEventHubs.instances.schemaRegistryClientList.push({ key: key, value: value });
+}
+
+flutterAzureEventHubs.getSchemaRegistryClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.schemaRegistryClientList.length; i++) {
+        if (flutterAzureEventHubs.instances.schemaRegistryClientList[i].key === key) {
+            return flutterAzureEventHubs.instances.schemaRegistryClientList[i].value;
+        }
+    }
+}
+
+flutterAzureEventHubs.removeSchemaRegistryClientByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.schemaRegistryClientList.length; i++) {
+        if (flutterAzureEventHubs.instances.schemaRegistryClientList[i].key === key) {
+            flutterAzureEventHubs.instances.schemaRegistryClientList.splice(i, 1);
             i--;
             break;
         }
@@ -372,6 +397,39 @@ flutterAzureEventHubs.api.closeEventHubConsumerClient = function (
             javascriptTransactionId: javascriptTransactionId,
             success: false,
             result: "ERROR: EventHubConsumerClient not found."
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.createSchemaRegistryClient = function (
+    schemaRegistryClientId,
+    fullyQualifiedNamespace,
+    credential,
+    schemaRegistryClientOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    try {
+        var schemaRegistryClientInstance = new flutterAzureEventHubs.schemaRegistryClient(
+            fullyQualifiedNamespace,
+            credential,
+            schemaRegistryClientOptions);
+        flutterAzureEventHubs.setSchemaRegistryClient(
+            schemaRegistryClientId,
+            schemaRegistryClientInstance);
+
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: true,
+            result: ""
+        }));
+    } catch (error) {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: error.toString()
         }));
     }
 }
