@@ -1,14 +1,17 @@
 const { EventHubProducerClient, EventHubConsumerClient } = require("@azure/event-hubs");
+const { ClientSecretCredential } = require("@azure/identity");
 const { SchemaRegistryClient } = require("@azure/schema-registry");
 
 flutterAzureEventHubs = {};
 flutterAzureEventHubs.eventHubProducerClient = EventHubProducerClient;
 flutterAzureEventHubs.eventHubConsumerClient = EventHubConsumerClient;
+flutterAzureEventHubs.clientSecretCredential = ClientSecretCredential;
 flutterAzureEventHubs.schemaRegistryClient = SchemaRegistryClient;
 flutterAzureEventHubs.instances = {};
 flutterAzureEventHubs.instances.eventHubProducerClientList = [];
 flutterAzureEventHubs.instances.eventHubConsumerClientList = [];
 flutterAzureEventHubs.instances.subscriptionList = [];
+flutterAzureEventHubs.instances.clientSecretCredentialList = [];
 flutterAzureEventHubs.instances.schemaRegistryClientList = [];
 flutterAzureEventHubs.api = {};
 
@@ -72,6 +75,28 @@ flutterAzureEventHubs.removeSubscriptionByKey = function (key) {
     for (var i = 0; i < flutterAzureEventHubs.instances.subscriptionList.length; i++) {
         if (flutterAzureEventHubs.instances.subscriptionList[i].key === key) {
             flutterAzureEventHubs.instances.subscriptionList.splice(i, 1);
+            i--;
+            break;
+        }
+    }
+}
+
+flutterAzureEventHubs.setClientSecretCredential = function (key, value) {
+    flutterAzureEventHubs.instances.clientSecretCredentialList.push({ key: key, value: value });
+}
+
+flutterAzureEventHubs.getClientSecretCredentialByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.clientSecretCredentialList.length; i++) {
+        if (flutterAzureEventHubs.instances.clientSecretCredentialList[i].key === key) {
+            return flutterAzureEventHubs.instances.clientSecretCredentialList[i].value;
+        }
+    }
+}
+
+flutterAzureEventHubs.removeClientSecretCredentialByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.clientSecretCredentialList.length; i++) {
+        if (flutterAzureEventHubs.instances.clientSecretCredentialList[i].key === key) {
+            flutterAzureEventHubs.instances.clientSecretCredentialList.splice(i, 1);
             i--;
             break;
         }
@@ -401,22 +426,24 @@ flutterAzureEventHubs.api.closeEventHubConsumerClient = function (
     }
 }
 
-flutterAzureEventHubs.api.createSchemaRegistryClient = function (
-    schemaRegistryClientId,
-    fullyQualifiedNamespace,
-    credential,
-    schemaRegistryClientOptions,
+flutterAzureEventHubs.api.createClientSecretCredential = function (
+    clientSecretCredentialId,
+    tenantId,
+    clientId,
+    clientSecret,
+    tokenCredentialOptions,
     javascriptTransactionId,
     javascriptResultId) {
 
     try {
-        var schemaRegistryClientInstance = new flutterAzureEventHubs.schemaRegistryClient(
-            fullyQualifiedNamespace,
-            credential,
-            schemaRegistryClientOptions);
-        flutterAzureEventHubs.setSchemaRegistryClient(
-            schemaRegistryClientId,
-            schemaRegistryClientInstance);
+        var clientSecretCredentialInstance = new flutterAzureEventHubs.clientSecretCredential(
+            tenantId,
+            clientId,
+            clientSecret,
+            tokenCredentialOptions);
+        flutterAzureEventHubs.setClientSecretCredential(
+            clientSecretCredentialId,
+            clientSecretCredentialInstance);
 
         proxyInterop.postMessage(JSON.stringify({
             id: javascriptResultId,
@@ -430,6 +457,51 @@ flutterAzureEventHubs.api.createSchemaRegistryClient = function (
             javascriptTransactionId: javascriptTransactionId,
             success: false,
             result: error.toString()
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.createSchemaRegistryClient = function (
+    schemaRegistryClientId,
+    fullyQualifiedNamespace,
+    clientSecretCredentialId,
+    schemaRegistryClientOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var clientSecretCredentialInstance = flutterAzureEventHubs
+        .getClientSecretCredentialByKey(clientSecretCredentialId);
+    if (clientSecretCredentialInstance != null) {
+        try {
+            var schemaRegistryClientInstance = new flutterAzureEventHubs.schemaRegistryClient(
+                fullyQualifiedNamespace,
+                clientSecretCredentialInstance,
+                schemaRegistryClientOptions);
+            flutterAzureEventHubs.setSchemaRegistryClient(
+                schemaRegistryClientId,
+                schemaRegistryClientInstance);
+
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: true,
+                result: ""
+            }));
+        } catch (error) {
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: false,
+                result: error.toString()
+            }));
+        }
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: ClientSecretCredential not found."
         }));
     }
 }

@@ -29,7 +29,7 @@
   "sideEffects": false,
   "dependencies": {
     "@azure/event-hubs": "^5.0.0",
-    "@azure/identity": "^1.0.2",
+    "@azure/identity": "^1.5.2",
     "@azure/schema-registry": "^1.1.0",
     "polyfill-crypto.getrandomvalues": "^1.0.0"
   },

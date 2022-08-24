@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/ClientSecretCredential.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResult.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/JavascriptResultStreamSink.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaRegistryClient.dart';
@@ -21,6 +22,7 @@ class SchemaRegistryClientApplicationService
   @override
   Future<SchemaRegistryClient> createSchemaRegistryClient(
       String fullyQualifiedNamespace,
+      ClientSecretCredential clientSecretCredential,
       {SchemaRegistryClientOptions? schemaRegistryClientOptions}) async {
     var schemaRegistryClient =
         SchemaRegistryClient(Uuid().v4(), fullyQualifiedNamespace);
@@ -32,21 +34,23 @@ class SchemaRegistryClientApplicationService
     _javascriptApplicationService
         .subscribeJavascriptResultStreamSink(javascriptResultStreamSink);
 
-    var createEventHubProducerClientJavascriptTransaction =
+    var createSchemaRegistryClientJavascriptTransaction =
         await _schemaRegistryClientDomainService.repositoryService
             .getCreateSchemaRegistryClientJavascriptTransaction(
-                schemaRegistryClient, schemaRegistryClientOptions);
+                schemaRegistryClient,
+                clientSecretCredential,
+                schemaRegistryClientOptions);
 
     JavascriptResult? javascriptResult;
     javascriptResultStreamController.stream.listen((event) {
       if (event.javascriptTransactionId ==
-          createEventHubProducerClientJavascriptTransaction.id) {
+          createSchemaRegistryClientJavascriptTransaction.id) {
         javascriptResult = event;
         waitStreamController.sink.add(true);
       }
     });
-    await _javascriptApplicationService.executeJavascriptCode(
-        createEventHubProducerClientJavascriptTransaction);
+    await _javascriptApplicationService
+        .executeJavascriptCode(createSchemaRegistryClientJavascriptTransaction);
     await waitStreamController.stream.first;
     await waitStreamController.close();
 

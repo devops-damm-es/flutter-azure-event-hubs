@@ -1,8 +1,10 @@
+import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/Impl/ClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/JavascriptApplicationService.dart';
@@ -20,11 +22,13 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptResu
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTransactionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/PartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/ReceivedEventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/IClientSecretCredentialDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/ISchemaRegistryClientDomainService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/Impl/ClientSecretCredentialDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptClientLibraryDomainService.dart';
@@ -35,16 +39,20 @@ import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventPositionMa
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISubscribeOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ITokenCredentialOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventPositionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SubscribeOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/TokenCredentialOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IClientSecretCredentialRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptClientLibraryRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/ISchemaRegistryClientRepositoryService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/ClientSecretCredentialRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/JavascriptClientLibraryRepositoryService.dart';
@@ -71,6 +79,10 @@ class Container {
         new ReceivedEventDataMapperService(
             c.resolve<IDateTimeMapperService>()));
 
+    container.registerFactory<IClientSecretCredentialApplicationService>((c) =>
+        new ClientSecretCredentialApplicationService(
+            c.resolve<IClientSecretCredentialDomainService>(),
+            c.resolve<IJavascriptApplicationService>()));
     container.registerFactory<IEventHubConsumerClientApplicationService>((c) =>
         new EventHubConsumerClientApplicationService(
             c.resolve<IEventHubConsumerClientDomainService>(),
@@ -93,6 +105,9 @@ class Container {
             c.resolve<IJavascriptApplicationService>()));
 
     // Domain Services
+    container.registerFactory<IClientSecretCredentialDomainService>((c) =>
+        new ClientSecretCredentialDomainService(
+            c.resolve<IClientSecretCredentialRepositoryService>()));
     container.registerFactory<IEventHubConsumerClientDomainService>((c) =>
         new EventHubConsumerClientDomainService(
             c.resolve<IEventHubConsumerClientRepositoryService>()));
@@ -120,7 +135,12 @@ class Container {
     container.registerFactory<ISubscribeOptionsMapperService>((c) =>
         new SubscribeOptionsMapperService(
             c.resolve<IEventPositionMapperService>()));
+    container.registerFactory<ITokenCredentialOptionsMapperService>(
+        (c) => new TokenCredentialOptionsMapperService());
 
+    container.registerFactory<IClientSecretCredentialRepositoryService>((c) =>
+        new ClientSecretCredentialRepositoryService(
+            c.resolve<ITokenCredentialOptionsMapperService>()));
     container.registerFactory<IEventHubConsumerClientRepositoryService>((c) =>
         new EventHubConsumerClientRepositoryService(
             c.resolve<ISubscribeOptionsMapperService>()));
