@@ -505,3 +505,46 @@ flutterAzureEventHubs.api.createSchemaRegistryClient = function (
         }));
     }
 }
+
+flutterAzureEventHubs.api.getSchemaProperties = function (
+    schemaRegistryClientId,
+    schemaDescription,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var schemaRegistryClientInstance = flutterAzureEventHubs
+        .getSchemaRegistryClientByKey(schemaRegistryClientId);
+    if (schemaRegistryClientInstance != null) {
+        schemaRegistryClientInstance
+            .getSchemaProperties(schemaDescription)
+            .then(function (schemaProperties) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: JSON.stringify({
+                        id: schemaProperties.id,
+                        format: schemaProperties.format,
+                        groupName: schemaProperties.groupName,
+                        name: schemaProperties.name
+                    })
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: SchemaRegistryClient not found."
+        }));
+    }
+}

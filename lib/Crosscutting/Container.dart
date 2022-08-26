@@ -16,12 +16,14 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMa
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptTransactionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IPartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/ISchemaPropertiesMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/DateTimeMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/IncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTransactionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/PartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/ReceivedEventDataMapperService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/SchemaPropertiesMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IClientSecretCredentialDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
@@ -36,12 +38,14 @@ import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptDomainSe
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/SchemaRegistryClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventPositionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaDescriptionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ITokenCredentialOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventPositionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaDescriptionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaRegistryClientOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SubscribeOptionsMapperService.dart';
@@ -78,6 +82,8 @@ class Container {
     container.registerFactory<IReceivedEventDataMapperService>((c) =>
         new ReceivedEventDataMapperService(
             c.resolve<IDateTimeMapperService>()));
+    container.registerFactory<ISchemaPropertiesMapperService>(
+        (c) => new SchemaPropertiesMapperService());
 
     container.registerFactory<IClientSecretCredentialApplicationService>((c) =>
         new ClientSecretCredentialApplicationService(
@@ -102,7 +108,8 @@ class Container {
     container.registerFactory<ISchemaRegistryClientApplicationService>((c) =>
         new SchemaRegistryClientApplicationService(
             c.resolve<ISchemaRegistryClientDomainService>(),
-            c.resolve<IJavascriptApplicationService>()));
+            c.resolve<IJavascriptApplicationService>(),
+            c.resolve<ISchemaPropertiesMapperService>()));
 
     // Domain Services
     container.registerFactory<IClientSecretCredentialDomainService>((c) =>
@@ -128,6 +135,8 @@ class Container {
         (c) => new EventDataMapperService());
     container.registerFactory<IEventPositionMapperService>(
         (c) => new EventPositionMapperService());
+    container.registerFactory<ISchemaDescriptionMapperService>(
+        (c) => new SchemaDescriptionMapperService());
     container.registerFactory<ISchemaRegistryClientOptionsMapperService>(
         (c) => new SchemaRegistryClientOptionsMapperService());
     container.registerFactory<ISendBatchOptionsMapperService>(
@@ -154,6 +163,7 @@ class Container {
         (c) => new JavascriptRepositoryService());
     container.registerFactory<ISchemaRegistryClientRepositoryService>((c) =>
         new SchemaRegistryClientRepositoryService(
-            c.resolve<ISchemaRegistryClientOptionsMapperService>()));
+            c.resolve<ISchemaRegistryClientOptionsMapperService>(),
+            c.resolve<ISchemaDescriptionMapperService>()));
   }
 }
