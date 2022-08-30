@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
@@ -69,8 +70,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController _eventHubProducerController = TextEditingController();
-  TextEditingController _eventHubConsumerController = TextEditingController();
+  final TextEditingController _eventHubProducerController =
+      TextEditingController();
+  final TextEditingController _eventHubConsumerController =
+      TextEditingController();
+  final ScrollController _verticalScrollController =
+      ScrollController(initialScrollOffset: 0);
+  final ScrollController _horizontalScrollController =
+      ScrollController(initialScrollOffset: 0);
 
   void _sendEventDataBatch() {
     setState(() {
@@ -202,51 +209,278 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var appBar = AppBar(
-      title: Text(widget.title),
-    );
-    var width = MediaQuery.of(context).size.width;
-    var height =
-        MediaQuery.of(context).size.height - appBar.preferredSize.height;
+    var appBar = AppBar(title: Text(widget.title));
+
+    var width = MediaQuery.of(context).size.width -
+        MediaQuery.of(context).padding.left -
+        MediaQuery.of(context).padding.right;
+    if (width < 360) {
+      width = 360;
+    }
+
+    var height = MediaQuery.of(context).size.height -
+        appBar.preferredSize.height -
+        MediaQuery.of(context).padding.top -
+        MediaQuery.of(context).padding.bottom;
+    if (height < 360) {
+      height = 360;
+    }
+
+    var widthBreakpoint = Breakpoint.fromConstraints(
+        BoxConstraints(maxWidth: width, maxHeight: height));
+    var breakpointMarginWidth = widthBreakpoint.gutters;
+    var breakpointGutterWidth = widthBreakpoint.gutters;
+
+    var breakpointColumnsWidth = (width -
+            (((breakpointMarginWidth + breakpointGutterWidth) / 2) *
+                (widthBreakpoint.columns + 1))) /
+        widthBreakpoint.columns;
+
+    var buttonsInBottom = widthBreakpoint.window == WindowSize.xsmall ||
+            widthBreakpoint.window == WindowSize.small
+        ? true
+        : false;
+
+    var heightBreakpoint = Breakpoint.fromConstraints(
+        BoxConstraints(maxWidth: height, maxHeight: width));
+    var breakpointMarginHeight = heightBreakpoint.gutters;
+    var breakpointGutterHeight = heightBreakpoint.gutters;
+
+    var breakpointColumnsHeight = (height -
+            (((breakpointMarginHeight + breakpointGutterHeight) / 2) *
+                (heightBreakpoint.columns + 1))) /
+        heightBreakpoint.columns;
+
     return Scaffold(
         appBar: appBar,
-        body: Container(
-          width: width,
-          height: height,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                  width: width,
-                  height: height / 2,
-                  padding: EdgeInsets.all(appBar.preferredSize.height / 5),
-                  child: TextField(
-                      decoration: InputDecoration(
-                          labelText: 'Events sended:',
-                          border: OutlineInputBorder()),
-                      controller: _eventHubProducerController,
-                      keyboardType: TextInputType.multiline,
-                      textAlignVertical: TextAlignVertical.top,
-                      expands: true,
-                      readOnly: true,
-                      maxLines: null)),
-              Container(
-                  width: width,
-                  height: height / 2,
-                  padding: EdgeInsets.all(appBar.preferredSize.height / 5),
-                  child: TextField(
-                      decoration: InputDecoration(
-                          labelText: 'Events received:',
-                          border: OutlineInputBorder()),
-                      controller: _eventHubConsumerController,
-                      keyboardType: TextInputType.multiline,
-                      textAlignVertical: TextAlignVertical.top,
-                      expands: true,
-                      readOnly: true,
-                      maxLines: null))
-            ],
-          ),
-        ),
+        body: Scrollbar(
+            thumbVisibility: true,
+            trackVisibility: true,
+            controller: _verticalScrollController,
+            child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: true,
+                notificationPredicate: (notif) => notif.depth == 1,
+                controller: _horizontalScrollController,
+                child: SingleChildScrollView(
+                    controller: _verticalScrollController,
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                        controller: _horizontalScrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: Container(
+                            width: width,
+                            height: height,
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                      width: 10,
+                                      height: breakpointMarginHeight,
+                                      color: Colors.pink),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10,
+                                            color: Colors.pink),
+                                        buttonsInBottom
+                                            ? Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                widthBreakpoint
+                                                                    .columns) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    1)),
+                                                        height: (breakpointColumnsHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    2),
+                                                        color: Colors.yellow),
+                                                    Container(
+                                                        width: 10,
+                                                        height:
+                                                            breakpointGutterHeight,
+                                                        color: Colors.pink),
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                widthBreakpoint
+                                                                    .columns) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    1)),
+                                                        height:
+                                                            breakpointColumnsHeight,
+                                                        color: Colors.amber)
+                                                  ])
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    2)) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    3)),
+                                                        height: (breakpointColumnsHeight *
+                                                                (heightBreakpoint
+                                                                        .columns /
+                                                                    2)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1),
+                                                        color: Colors.yellow),
+                                                    Container(
+                                                        width:
+                                                            breakpointGutterWidth,
+                                                        height: 10,
+                                                        color: Colors.pink),
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                2) +
+                                                            breakpointGutterWidth,
+                                                        height: (breakpointColumnsHeight *
+                                                                (heightBreakpoint
+                                                                        .columns /
+                                                                    2)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1),
+                                                        color: Colors.amber)
+                                                  ]),
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10,
+                                            color: Colors.pink),
+                                      ]),
+                                  Container(
+                                      width: 10,
+                                      height: breakpointGutterHeight,
+                                      color: Colors.pink),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10,
+                                            color: Colors.pink),
+                                        buttonsInBottom
+                                            ? Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                widthBreakpoint
+                                                                    .columns) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    1)),
+                                                        height: (breakpointColumnsHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    2),
+                                                        color: Colors.yellow),
+                                                    Container(
+                                                        width: 10,
+                                                        height:
+                                                            breakpointGutterHeight,
+                                                        color: Colors.pink),
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                widthBreakpoint
+                                                                    .columns) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    1)),
+                                                        height:
+                                                            breakpointColumnsHeight,
+                                                        color: Colors.amber)
+                                                  ])
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    2)) +
+                                                            (breakpointGutterWidth *
+                                                                (widthBreakpoint
+                                                                        .columns -
+                                                                    3)),
+                                                        height: (breakpointColumnsHeight *
+                                                                (heightBreakpoint
+                                                                        .columns /
+                                                                    2)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1),
+                                                        color: Colors.yellow),
+                                                    Container(
+                                                        width:
+                                                            breakpointGutterWidth,
+                                                        height: 10,
+                                                        color: Colors.pink),
+                                                    Container(
+                                                        width: (breakpointColumnsWidth *
+                                                                2) +
+                                                            breakpointGutterWidth,
+                                                        height: (breakpointColumnsHeight *
+                                                                (heightBreakpoint
+                                                                        .columns /
+                                                                    2)) +
+                                                            breakpointGutterHeight *
+                                                                ((heightBreakpoint
+                                                                            .columns /
+                                                                        2) -
+                                                                    1),
+                                                        color: Colors.amber)
+                                                  ]),
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10,
+                                            color: Colors.pink),
+                                      ]),
+                                  Container(
+                                      width: 10,
+                                      height: breakpointMarginHeight,
+                                      color: Colors.pink),
+                                ])))))),
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,

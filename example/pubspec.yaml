@@ -29,6 +29,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  breakpoint: 1.2.0  
   kiwi: 3.0.0
   uuid: 3.0.6
   flutter_azure_event_hubs:
