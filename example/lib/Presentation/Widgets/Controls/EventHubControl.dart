@@ -69,6 +69,20 @@ class _EventHubControlState extends State<EventHubControl> {
           : (breakpointColumnsHeight * (heightBreakpoint.columns / 2)) +
               breakpointGutterHeight * ((heightBreakpoint.columns / 2) - 1);
 
+      var eventHubProducerButtonsWidth = buttonsInBottom
+          ? (breakpointColumnsWidth * (widthBreakpoint.columns / 2)) -
+              breakpointGutterHeight
+          : eventHubProducerConsumerButtonsContainerWidth;
+
+      var eventHubProducerButtonsWidgets = <Widget>[
+        Container(
+            width: eventHubProducerButtonsWidth,
+            height: 36,
+            child: ElevatedButton(
+                onPressed: _sendEventDataBatch,
+                child: Text("SEND", style: Globals.buttonTextStyle)))
+      ];
+
       var eventHubProducerWidgets = <Widget>[
         Container(
             width: eventHubProducerConsumerTextFieldWidth,
@@ -85,17 +99,39 @@ class _EventHubControlState extends State<EventHubControl> {
                 maxLines: null)),
         Container(
             width: buttonsInBottom ? 10 : breakpointGutterWidth,
-            height: buttonsInBottom ? breakpointGutterHeight : 10,
-            color: Colors.pink),
+            height: buttonsInBottom ? breakpointGutterHeight : 10),
         Container(
-          width: eventHubProducerConsumerButtonsContainerWidth,
-          height: eventHubProducerConsumerButtonsContainerHeight,
-          color: Colors.amber,
-          child: ElevatedButton(
-            onPressed: _sendEventDataBatch,
-            child: Text("Send Event Data"),
-          ),
-        )
+            width: eventHubProducerConsumerButtonsContainerWidth,
+            height: eventHubProducerConsumerButtonsContainerHeight,
+            child: buttonsInBottom
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: eventHubProducerButtonsWidgets,
+                  )
+                : Column(
+                    children: eventHubProducerButtonsWidgets,
+                  ))
+      ];
+
+      var eventHubConsumerButtonsSpacing =
+          buttonsInBottom ? breakpointGutterWidth : breakpointGutterHeight;
+
+      var eventHubConsumerButtonsWidgets = <Widget>[
+        Container(
+            width: eventHubProducerButtonsWidth,
+            height: 36,
+            child: ElevatedButton(
+                onPressed: _receiveEventData,
+                child: Text("RECEIVE", style: Globals.buttonTextStyle))),
+        Container(
+            width: eventHubConsumerButtonsSpacing,
+            height: eventHubConsumerButtonsSpacing),
+        Container(
+            width: eventHubProducerButtonsWidth,
+            height: 36,
+            child: ElevatedButton(
+                onPressed: _closeReceiveEventData,
+                child: Text("CLOSE", style: Globals.buttonTextStyle)))
       ];
 
       var eventHubConsumerWidgets = <Widget>[
@@ -115,26 +151,18 @@ class _EventHubControlState extends State<EventHubControl> {
         ),
         Container(
             width: buttonsInBottom ? 10 : breakpointGutterWidth,
-            height: buttonsInBottom ? breakpointGutterHeight : 10,
-            color: Colors.pink),
+            height: buttonsInBottom ? breakpointGutterHeight : 10),
         Container(
             width: eventHubProducerConsumerButtonsContainerWidth,
             height: eventHubProducerConsumerButtonsContainerHeight,
-            color: Colors.amber,
-            child: Row(
-              children: [
-                ElevatedButton(
-                    onPressed: _createEventHubConsumerClient,
-                    child: Text("Create Event Hub Consumer Client")),
-                ElevatedButton(onPressed: _subscribe, child: Text("Subscribe")),
-                ElevatedButton(
-                    onPressed: _closeSubscription,
-                    child: Text("Close Subscription")),
-                ElevatedButton(
-                    onPressed: _closeEventHubConsumerClient,
-                    child: Text("Close Event Hub Consumer Client"))
-              ],
-            ))
+            child: buttonsInBottom
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: eventHubConsumerButtonsWidgets,
+                  )
+                : Column(
+                    children: eventHubConsumerButtonsWidgets,
+                  ))
       ];
 
       return Scrollbar(
@@ -160,16 +188,13 @@ class _EventHubControlState extends State<EventHubControl> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
                                 Container(
-                                    width: 10,
-                                    height: breakpointMarginHeight,
-                                    color: Colors.pink),
+                                    width: 10, height: breakpointMarginHeight),
                                 Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: <Widget>[
                                       Container(
                                           width: breakpointMarginWidth,
-                                          height: 10,
-                                          color: Colors.pink),
+                                          height: 10),
                                       buttonsInBottom
                                           ? Column(
                                               mainAxisAlignment:
@@ -182,20 +207,16 @@ class _EventHubControlState extends State<EventHubControl> {
                                                   eventHubProducerWidgets),
                                       Container(
                                           width: breakpointMarginWidth,
-                                          height: 10,
-                                          color: Colors.pink),
+                                          height: 10)
                                     ]),
                                 Container(
-                                    width: 10,
-                                    height: breakpointGutterHeight,
-                                    color: Colors.pink),
+                                    width: 10, height: breakpointGutterHeight),
                                 Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: <Widget>[
                                       Container(
                                           width: breakpointMarginWidth,
-                                          height: 10,
-                                          color: Colors.pink),
+                                          height: 10),
                                       buttonsInBottom
                                           ? Column(
                                               mainAxisAlignment:
@@ -208,13 +229,10 @@ class _EventHubControlState extends State<EventHubControl> {
                                                   eventHubConsumerWidgets),
                                       Container(
                                           width: breakpointMarginWidth,
-                                          height: 10,
-                                          color: Colors.pink)
+                                          height: 10)
                                     ]),
                                 Container(
-                                    width: 10,
-                                    height: breakpointMarginHeight,
-                                    color: Colors.pink)
+                                    width: 10, height: breakpointMarginHeight)
                               ]))))));
     });
   }
@@ -254,7 +272,7 @@ class _EventHubControlState extends State<EventHubControl> {
     });
   }
 
-  void _createEventHubConsumerClient() {
+  void _receiveEventData() {
     setState(() {
       if (Globals.eventHubConsumerClient == null) {
         Globals.eventHubConsumerClientApplicationService!
@@ -265,6 +283,40 @@ class _EventHubControlState extends State<EventHubControl> {
           Globals.eventHubConsumerController.text = DateTime.now().toString() +
               ": EventHubConsumerClient created.\n" +
               Globals.eventHubConsumerController.text;
+          if (Globals.incomingEventStreamController == null) {
+            Globals.incomingEventStreamController =
+                StreamController<IncomingEvent>();
+            Globals.incomingEventStreamController!.stream.listen((event) {
+              setState(() {
+                if (event.receivedEventDataList.isNotEmpty) {
+                  Globals.eventHubConsumerController.text =
+                      DateTime.now().toString() +
+                          ": Receive new event: " +
+                          event.receivedEventDataList.first.body.toString() +
+                          "\n" +
+                          Globals.eventHubConsumerController.text;
+                }
+              });
+            });
+            var subscribeOptions = SubscribeOptions(null, null,
+                EventPosition(0, null, null, null), null, null, null);
+            Globals.eventHubConsumerClientApplicationService!
+                .subscribe(Globals.eventHubConsumerClient!,
+                    Globals.incomingEventStreamController!.sink,
+                    subscribeOptions: subscribeOptions)
+                .then((value) {
+              Globals.subscription = value;
+              Globals.eventHubConsumerController.text =
+                  DateTime.now().toString() +
+                      ": Subscribe.\n" +
+                      Globals.eventHubConsumerController.text;
+            });
+          } else {
+            Globals.eventHubConsumerController.text =
+                DateTime.now().toString() +
+                    ": Already subscribed.\n" +
+                    Globals.eventHubConsumerController.text;
+          }
         });
       } else {
         Globals.eventHubConsumerController.text = DateTime.now().toString() +
@@ -274,44 +326,7 @@ class _EventHubControlState extends State<EventHubControl> {
     });
   }
 
-  void _subscribe() {
-    setState(() {
-      if (Globals.incomingEventStreamController == null) {
-        Globals.incomingEventStreamController =
-            StreamController<IncomingEvent>();
-        Globals.incomingEventStreamController!.stream.listen((event) {
-          setState(() {
-            if (event.receivedEventDataList.isNotEmpty) {
-              Globals.eventHubConsumerController.text =
-                  DateTime.now().toString() +
-                      ": Receive new event: " +
-                      event.receivedEventDataList.first.body.toString() +
-                      "\n" +
-                      Globals.eventHubConsumerController.text;
-            }
-          });
-        });
-        var subscribeOptions = SubscribeOptions(
-            null, null, EventPosition(0, null, null, null), null, null, null);
-        Globals.eventHubConsumerClientApplicationService!
-            .subscribe(Globals.eventHubConsumerClient!,
-                Globals.incomingEventStreamController!.sink,
-                subscribeOptions: subscribeOptions)
-            .then((value) {
-          Globals.subscription = value;
-          Globals.eventHubConsumerController.text = DateTime.now().toString() +
-              ": Subscribe.\n" +
-              Globals.eventHubConsumerController.text;
-        });
-      } else {
-        Globals.eventHubConsumerController.text = DateTime.now().toString() +
-            ": Already subscribed.\n" +
-            Globals.eventHubConsumerController.text;
-      }
-    });
-  }
-
-  void _closeSubscription() {
+  void _closeReceiveEventData() {
     setState(() {
       Globals.eventHubConsumerClientApplicationService!
           .closeSubscription(Globals.subscription!)
@@ -322,32 +337,29 @@ class _EventHubControlState extends State<EventHubControl> {
           Globals.eventHubConsumerController.text = DateTime.now().toString() +
               ": Subscription closed.\n" +
               Globals.eventHubConsumerController.text;
-        });
-      });
-    });
-  }
 
-  void _closeEventHubConsumerClient() {
-    setState(() {
-      Globals.eventHubConsumerClientApplicationService!
-          .closeEventHubConsumerClient(Globals.eventHubConsumerClient!)
-          .then((value) {
-        if (Globals.incomingEventStreamController != null) {
-          Globals.incomingEventStreamController!.close().then((value) {
-            Globals.incomingEventStreamController = null;
-            Globals.subscription = null;
-            Globals.eventHubConsumerClient = null;
-            Globals.eventHubConsumerController.text =
-                DateTime.now().toString() +
-                    ": EventHubConsumerClient closed.\n" +
-                    Globals.eventHubConsumerController.text;
+          Globals.eventHubConsumerClientApplicationService!
+              .closeEventHubConsumerClient(Globals.eventHubConsumerClient!)
+              .then((value) {
+            if (Globals.incomingEventStreamController != null) {
+              Globals.incomingEventStreamController!.close().then((value) {
+                Globals.incomingEventStreamController = null;
+                Globals.subscription = null;
+                Globals.eventHubConsumerClient = null;
+                Globals.eventHubConsumerController.text =
+                    DateTime.now().toString() +
+                        ": EventHubConsumerClient closed.\n" +
+                        Globals.eventHubConsumerController.text;
+              });
+            } else {
+              Globals.eventHubConsumerClient = null;
+              Globals.eventHubConsumerController.text =
+                  DateTime.now().toString() +
+                      ": EventHubConsumerClient closed.\n" +
+                      Globals.eventHubConsumerController.text;
+            }
           });
-        } else {
-          Globals.eventHubConsumerClient = null;
-          Globals.eventHubConsumerController.text = DateTime.now().toString() +
-              ": EventHubConsumerClient closed.\n" +
-              Globals.eventHubConsumerController.text;
-        }
+        });
       });
     });
   }
