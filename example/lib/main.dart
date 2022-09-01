@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/EventHubControl.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_azure_event_hubs_example/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
+import 'package:google_fonts/google_fonts.dart';
 // ignore: library_prefixes
 import 'Crosscutting/container.dart' as IoC;
 
@@ -34,8 +36,42 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
+      themeMode: ThemeMode.system,
+      theme: FlexThemeData.light(
+        colors: const FlexSchemeColor(
+          primary: Color(0xffd8262e),
+          primaryContainer: Color(0xfffc706c),
+          secondary: Color(0xffff5656),
+          secondaryContainer: Color(0xffff7e7e),
+          tertiary: Color(0xff4a4a4a),
+          tertiaryContainer: Color(0xff747474),
+          appBarColor: Color(0xffff7e7e),
+          error: Color(0xffb00020),
+        ),
+        surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffoldVariantDialog,
+        blendLevel: 20,
+        appBarOpacity: 0.95,
+        appBarElevation: 10,
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        fontFamily: GoogleFonts.notoSans().fontFamily,
+      ),
+      darkTheme: FlexThemeData.dark(
+        colors: const FlexSchemeColor(
+          primary: Color(0xffd8262e),
+          primaryContainer: Color(0xfffc706c),
+          secondary: Color(0xffff5656),
+          secondaryContainer: Color(0xffff7e7e),
+          tertiary: Color(0xff4a4a4a),
+          tertiaryContainer: Color(0xff747474),
+          appBarColor: Color(0xffff7e7e),
+          error: Color(0xffcf6679),
+        ),
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurface,
+        blendLevel: 15,
+        appBarOpacity: 0.95,
+        appBarElevation: 10,
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        fontFamily: GoogleFonts.notoSans().fontFamily,
       ),
       home: MyHomePage(),
     );

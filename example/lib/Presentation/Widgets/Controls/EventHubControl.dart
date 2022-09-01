@@ -86,15 +86,13 @@ class _EventHubControlState extends State<EventHubControl> {
             width: eventHubProducerButtonsWidth,
             height: 36,
             child: ElevatedButton(
-                onPressed: _sendEventDataBatch,
-                child: Text("SEND", style: Globals.buttonTextStyle)))
+                onPressed: _sendEventDataBatch, child: Text("SEND")))
       ];
 
       var eventHubProducerWidgets = <Widget>[
         Container(
             width: eventHubProducerConsumerTextFieldWidth,
             height: eventHubProducerConsumerTextFieldHeight,
-            color: Colors.yellow,
             child: TextField(
                 decoration: InputDecoration(
                     labelText: 'Events sended:', border: OutlineInputBorder()),
@@ -128,8 +126,7 @@ class _EventHubControlState extends State<EventHubControl> {
             width: eventHubProducerButtonsWidth,
             height: 36,
             child: ElevatedButton(
-                onPressed: _receiveEventData,
-                child: Text("RECEIVE", style: Globals.buttonTextStyle))),
+                onPressed: _receiveEventData, child: Text("RECEIVE"))),
         Container(
             width: eventHubConsumerButtonsSpacing,
             height: eventHubConsumerButtonsSpacing),
@@ -137,15 +134,13 @@ class _EventHubControlState extends State<EventHubControl> {
             width: eventHubProducerButtonsWidth,
             height: 36,
             child: ElevatedButton(
-                onPressed: _closeReceiveEventData,
-                child: Text("CLOSE", style: Globals.buttonTextStyle)))
+                onPressed: _closeReceiveEventData, child: Text("CLOSE")))
       ];
 
       var eventHubConsumerWidgets = <Widget>[
         Container(
           width: eventHubProducerConsumerTextFieldWidth,
           height: eventHubProducerConsumerTextFieldHeight,
-          color: Colors.yellow,
           child: TextField(
               decoration: InputDecoration(
                   labelText: 'Events received:', border: OutlineInputBorder()),

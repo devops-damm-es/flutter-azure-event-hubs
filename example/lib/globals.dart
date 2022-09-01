@@ -6,7 +6,6 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/Subscription.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class Globals {
   static IEventHubProducerClientApplicationService?
@@ -23,8 +22,6 @@ class Globals {
   static Subscription? subscription;
 
   static int bottomNavigationBarSelectedIndex = 0;
-  static TextStyle buttonTextStyle = GoogleFonts.roboto(
-      fontWeight: FontWeight.w500, fontSize: 14.0, letterSpacing: 1.25);
 
   static TextEditingController eventHubProducerController =
       TextEditingController();
