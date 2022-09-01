@@ -20,7 +20,14 @@ class _EventHubControlState extends State<EventHubControl> {
     return LayoutBuilder(
         builder: (BuildContext layoutContext, BoxConstraints boxConstraints) {
       var width = boxConstraints.maxWidth;
+      if (width < 360) {
+        width = 360;
+      }
+
       var height = boxConstraints.maxHeight;
+      if (height < 480) {
+        height = 480;
+      }
 
       var widthBreakpoint = Breakpoint.fromConstraints(
           BoxConstraints(maxWidth: width, maxHeight: height));

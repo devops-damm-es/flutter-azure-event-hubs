@@ -53,18 +53,12 @@ class _MyHomePageState extends State<MyHomePage> {
     var width = MediaQuery.of(context).size.width -
         MediaQuery.of(context).padding.left -
         MediaQuery.of(context).padding.right;
-    if (width < 360) {
-      width = 360;
-    }
 
     var height = MediaQuery.of(context).size.height -
         kToolbarHeight -
         kBottomNavigationBarHeight -
         MediaQuery.of(context).padding.top -
         MediaQuery.of(context).padding.bottom;
-    if (height < 360) {
-      height = 360;
-    }
 
     return Scaffold(
         appBar: AppBar(title: Text('Flutter Azure Event Hubs')),
