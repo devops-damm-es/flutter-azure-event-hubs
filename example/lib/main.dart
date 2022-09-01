@@ -62,14 +62,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(title: Text('Flutter Azure Event Hubs')),
-        body: Container(
-            width: width,
-            height: height,
-            child: <Widget>[
-              EventHubControl(),
-              Container(child: Text("Avro")),
-              Container(child: Text("Configuration"))
-            ].elementAt(Globals.bottomNavigationBarSelectedIndex)),
+        body: SafeArea(
+            child: Container(
+                width: width,
+                height: height,
+                child: <Widget>[
+                  EventHubControl(),
+                  Container(child: Text("Avro")),
+                  Container(child: Text("Configuration"))
+                ].elementAt(Globals.bottomNavigationBarSelectedIndex))),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
