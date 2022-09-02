@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/EventHubControl.dart';
 import 'package:flutter_azure_event_hubs_example/globals.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,11 @@ Future<void> main() async {
       IoC.Container.resolve<IEventHubProducerClientApplicationService>();
   Globals.eventHubConsumerClientApplicationService =
       IoC.Container.resolve<IEventHubConsumerClientApplicationService>();
+  Globals.clientSecretCredentialApplicationService =
+      IoC.Container.resolve<IClientSecretCredentialApplicationService>();
+  Globals.schemaRegistryClientApplicationService =
+      IoC.Container.resolve<ISchemaRegistryClientApplicationService>();
+
   runApp(const MyApp());
 }
 

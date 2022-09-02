@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaProperties.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaRegistryClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:flutter_azure_event_hubs_example/globals.dart';
 import 'package:uuid/uuid.dart';
@@ -241,6 +244,42 @@ class _EventHubControlState extends State<EventHubControl> {
 
   void _sendEventDataBatch() {
     setState(() {
+      Globals.clientSecretCredentialApplicationService!
+          .createClientSecretCredential(
+              Globals.tenantId, Globals.clientId, Globals.clientSecret)
+          .then((clientSecretCredential) {
+        Globals.schemaRegistryClientApplicationService!
+            .createSchemaRegistryClient(
+                Globals.fullyQualifiedNamespace, clientSecretCredential)
+            .then((schemaRegistryClient) {
+          String schemaDefinition = "{\n" +
+              "    \"type\" : \"record\",  \n" +
+              "    \"namespace\" : \"damm.lab.eventhubs\", \n" +
+              "    \"name\" : \"Order\", \n" +
+              "    \"fields\" : [\n" +
+              "        { \n" +
+              "            \"name\" : \"id\" , \"type\" : \"string\" \n" +
+              "        }, \n" +
+              "        { \n" +
+              "            \"name\" : \"sourceId\", \"type\" : \"string\" \n" +
+              "        }\n" +
+              "    ]\n" +
+              "}";
+          var schemaDescription = SchemaDescription(
+              "groupschema1", "damm.lab.eventhubs.Order", "avro", "");
+          Globals.schemaRegistryClientApplicationService!
+              .getSchemaProperties(schemaRegistryClient, schemaDescription)
+              .then((schemaProperties) {
+            Globals.eventHubProducerController.text =
+                DateTime.now().toString() +
+                    ": Schema Id: " +
+                    schemaProperties.id +
+                    " \n" +
+                    Globals.eventHubProducerController.text;
+          });
+        });
+      });
+
       Globals.eventHubProducerClientApplicationService!
           .createEventHubProducerClient(
               Globals.connectionString, Globals.eventHubName)
