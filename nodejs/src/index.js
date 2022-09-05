@@ -1,18 +1,21 @@
 const { EventHubProducerClient, EventHubConsumerClient } = require("@azure/event-hubs");
 const { ClientSecretCredential } = require("@azure/identity");
 const { SchemaRegistryClient } = require("@azure/schema-registry");
+const { AvroSerializer } = require("@azure/schema-registry-avro");
 
 flutterAzureEventHubs = {};
 flutterAzureEventHubs.eventHubProducerClient = EventHubProducerClient;
 flutterAzureEventHubs.eventHubConsumerClient = EventHubConsumerClient;
 flutterAzureEventHubs.clientSecretCredential = ClientSecretCredential;
 flutterAzureEventHubs.schemaRegistryClient = SchemaRegistryClient;
+flutterAzureEventHubs.avroSerializer = AvroSerializer;
 flutterAzureEventHubs.instances = {};
 flutterAzureEventHubs.instances.eventHubProducerClientList = [];
 flutterAzureEventHubs.instances.eventHubConsumerClientList = [];
 flutterAzureEventHubs.instances.subscriptionList = [];
 flutterAzureEventHubs.instances.clientSecretCredentialList = [];
 flutterAzureEventHubs.instances.schemaRegistryClientList = [];
+flutterAzureEventHubs.instances.avroSerializerList = [];
 flutterAzureEventHubs.api = {};
 
 flutterAzureEventHubs.setEventHubProducerClient = function (key, value) {
@@ -119,6 +122,28 @@ flutterAzureEventHubs.removeSchemaRegistryClientByKey = function (key) {
     for (var i = 0; i < flutterAzureEventHubs.instances.schemaRegistryClientList.length; i++) {
         if (flutterAzureEventHubs.instances.schemaRegistryClientList[i].key === key) {
             flutterAzureEventHubs.instances.schemaRegistryClientList.splice(i, 1);
+            i--;
+            break;
+        }
+    }
+}
+
+flutterAzureEventHubs.setAvroSerializer = function (key, value) {
+    flutterAzureEventHubs.instances.avroSerializerList.push({ key: key, value: value });
+}
+
+flutterAzureEventHubs.getAvroSerializerByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.avroSerializerList.length; i++) {
+        if (flutterAzureEventHubs.instances.avroSerializerList[i].key === key) {
+            return flutterAzureEventHubs.instances.avroSerializerList[i].value;
+        }
+    }
+}
+
+flutterAzureEventHubs.removeAvroSerializerByKey = function (key) {
+    for (var i = 0; i < flutterAzureEventHubs.instances.avroSerializerList.length; i++) {
+        if (flutterAzureEventHubs.instances.avroSerializerList[i].key === key) {
+            flutterAzureEventHubs.instances.avroSerializerList.splice(i, 1);
             i--;
             break;
         }
@@ -538,6 +563,48 @@ flutterAzureEventHubs.api.getSchemaProperties = function (
                     result: error.toString()
                 }));
             });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: SchemaRegistryClient not found."
+        }));
+    }
+}
+
+flutterAzureEventHubs.api.createAvroSerializer = function (
+    avroSerializerId,
+    schemaRegistryClientId,
+    avroSerializerOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+    var schemaRegistryClientInstance = flutterAzureEventHubs
+        .getSchemaRegistryClientByKey(schemaRegistryClientId);
+    if (schemaRegistryClientInstance != null) {
+        try {
+            var avroSerializerInstance = new flutterAzureEventHubs.avroSerializer(
+                schemaRegistryClientInstance,
+                avroSerializerOptions);
+            flutterAzureEventHubs.setAvroSerializer(
+                avroSerializerId,
+                avroSerializerInstance);
+
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: true,
+                result: ""
+            }));
+        } catch (error) {
+            proxyInterop.postMessage(JSON.stringify({
+                id: javascriptResultId,
+                javascriptTransactionId: javascriptTransactionId,
+                success: false,
+                result: error.toString()
+            }));
+        }
     }
     else {
         proxyInterop.postMessage(JSON.stringify({

@@ -1,9 +1,11 @@
+import 'package:flutter_azure_event_hubs/Application/IAvroSerializerApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Application/Impl/AvroSerializerApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/ClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/Impl/EventHubProducerClientApplicationService.dart';
@@ -24,18 +26,21 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTran
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/PartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/ReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/SchemaPropertiesMapperService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/IAvroSerializerDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IClientSecretCredentialDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IEventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/IJavascriptDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/ISchemaRegistryClientDomainService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Services/Impl/AvroSerializerDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/ClientSecretCredentialDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubConsumerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/EventHubProducerClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptClientLibraryDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/SchemaRegistryClientDomainService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IAvroSerializerOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventPositionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaDescriptionMapperService.dart';
@@ -43,6 +48,7 @@ import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaRegistryC
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ITokenCredentialOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/AvroSerializerOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventPositionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaDescriptionMapperService.dart';
@@ -50,12 +56,14 @@ import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaRegis
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SendBatchOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/TokenCredentialOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IAvroSerializerRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IClientSecretCredentialRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IEventHubProducerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptClientLibraryRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/IJavascriptRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/ISchemaRegistryClientRepositoryService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/AvroSerializerRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/ClientSecretCredentialRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubConsumerClientRepositoryService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Repositories/Impl/EventHubProducerClientRepositoryService.dart';
@@ -85,6 +93,10 @@ class Container {
     container.registerFactory<ISchemaPropertiesMapperService>(
         (c) => new SchemaPropertiesMapperService());
 
+    container.registerFactory<IAvroSerializerApplicationService>((c) =>
+        new AvroSerializerApplicationService(
+            c.resolve<IAvroSerializerDomainService>(),
+            c.resolve<IJavascriptApplicationService>()));
     container.registerFactory<IClientSecretCredentialApplicationService>((c) =>
         new ClientSecretCredentialApplicationService(
             c.resolve<IClientSecretCredentialDomainService>(),
@@ -112,6 +124,9 @@ class Container {
             c.resolve<ISchemaPropertiesMapperService>()));
 
     // Domain Services
+    container.registerFactory<IAvroSerializerDomainService>((c) =>
+        new AvroSerializerDomainService(
+            c.resolve<IAvroSerializerRepositoryService>()));
     container.registerFactory<IClientSecretCredentialDomainService>((c) =>
         new ClientSecretCredentialDomainService(
             c.resolve<IClientSecretCredentialRepositoryService>()));
@@ -131,6 +146,8 @@ class Container {
             c.resolve<ISchemaRegistryClientRepositoryService>()));
 
     // Repository Services
+    container.registerFactory<IAvroSerializerOptionsMapperService>(
+        (c) => new AvroSerializerOptionsMapperService());
     container.registerFactory<IEventDataMapperService>(
         (c) => new EventDataMapperService());
     container.registerFactory<IEventPositionMapperService>(
@@ -147,6 +164,9 @@ class Container {
     container.registerFactory<ITokenCredentialOptionsMapperService>(
         (c) => new TokenCredentialOptionsMapperService());
 
+    container.registerFactory<IAvroSerializerRepositoryService>((c) =>
+        new AvroSerializerRepositoryService(
+            c.resolve<IAvroSerializerOptionsMapperService>()));
     container.registerFactory<IClientSecretCredentialRepositoryService>((c) =>
         new ClientSecretCredentialRepositoryService(
             c.resolve<ITokenCredentialOptionsMapperService>()));
