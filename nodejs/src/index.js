@@ -615,3 +615,45 @@ flutterAzureEventHubs.api.createAvroSerializer = function (
         }));
     }
 }
+
+flutterAzureEventHubs.api.serialize = function (
+    avroSerializerId,
+    value,
+    schema,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var avroSerializerInstance = flutterAzureEventHubs
+        .getAvroSerializerByKey(avroSerializerId);
+    if (avroSerializerInstance != null) {
+        avroSerializerInstance
+            .serialize(value, schema)
+            .then(function (messageContent) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: JSON.stringify({
+                        data: messageContent.data,
+                        contentType: messageContent.contentType
+                    })
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: AvroSerializer not found."
+        }));
+    }
+}

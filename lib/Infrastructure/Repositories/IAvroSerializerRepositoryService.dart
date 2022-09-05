@@ -8,4 +8,6 @@ abstract class IAvroSerializerRepositoryService {
       AvroSerializer avroSerializer,
       SchemaRegistryClient schemaRegistryClient,
       AvroSerializerOptions? avroSerializerOptions);
+  Future<JavascriptTransaction> getSerializeJavascriptTransaction(
+      AvroSerializer avroSerializer, String value, String schema);
 }

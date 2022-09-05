@@ -39,4 +39,25 @@ class AvroSerializerRepositoryService extends IAvroSerializerRepositoryService {
         JavascriptTransaction(javascriptTransactionId, javascriptCode);
     return Future.value(javascriptTransaction);
   }
+
+  @override
+  Future<JavascriptTransaction> getSerializeJavascriptTransaction(
+      AvroSerializer avroSerializer, String value, String schema) async {
+    var javascriptTransactionId = Uuid().v4();
+    var javascriptCode = "flutterAzureEventHubs.api.serialize('" +
+        avroSerializer.id +
+        "', " +
+        value +
+        ", '" +
+        schema +
+        "', '" +
+        javascriptTransactionId +
+        "', '" +
+        Uuid().v4() +
+        "');";
+
+    var javascriptTransaction =
+        JavascriptTransaction(javascriptTransactionId, javascriptCode);
+    return Future.value(javascriptTransaction);
+  }
 }

@@ -16,6 +16,7 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/IDateTimeMapperServ
 import 'package:flutter_azure_event_hubs/Application/Mappers/IIncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptTransactionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/IMessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IPartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/ISchemaPropertiesMapperService.dart';
@@ -23,6 +24,7 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/DateTimeMapper
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/IncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTransactionMapperService.dart';
+import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/MessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/PartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/ReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/SchemaPropertiesMapperService.dart';
@@ -85,6 +87,8 @@ class Container {
         (c) => new JavascriptResultMapperService());
     container.registerFactory<IJavascriptTransactionMapperService>(
         (c) => new JavascriptTransactionMapperService());
+    container.registerFactory<IMessageContentMapperService>(
+        (c) => new MessageContentMapperService());
     container.registerFactory<IPartitionContextMapperService>(
         (c) => new PartitionContextMapperService());
     container.registerFactory<IReceivedEventDataMapperService>((c) =>
@@ -96,7 +100,8 @@ class Container {
     container.registerFactory<IAvroSerializerApplicationService>((c) =>
         new AvroSerializerApplicationService(
             c.resolve<IAvroSerializerDomainService>(),
-            c.resolve<IJavascriptApplicationService>()));
+            c.resolve<IJavascriptApplicationService>(),
+            c.resolve<IMessageContentMapperService>()));
     container.registerFactory<IClientSecretCredentialApplicationService>((c) =>
         new ClientSecretCredentialApplicationService(
             c.resolve<IClientSecretCredentialDomainService>(),
