@@ -10,5 +10,5 @@ abstract class IAvroSerializerApplicationService {
       SchemaRegistryClient schemaRegistryClient,
       {AvroSerializerOptions? avroSerializerOptions});
   Future<MessageContent> serialize(
-      AvroSerializer avroSerializer, String value, String schema);
+      AvroSerializer avroSerializer, String jsonValue, String schema);
 }

@@ -65,7 +65,7 @@ class AvroSerializerApplicationService
 
   @override
   Future<MessageContent> serialize(
-      AvroSerializer avroSerializer, String value, String schema) async {
+      AvroSerializer avroSerializer, String jsonValue, String schema) async {
     var waitStreamController = StreamController<bool>();
     var javascriptResultStreamController = StreamController<JavascriptResult>();
     var javascriptResultStreamSink = JavascriptResultStreamSink(
@@ -75,7 +75,7 @@ class AvroSerializerApplicationService
 
     var getSerializeJavascriptTransaction = await _avroSerializerDomainService
         .repositoryService
-        .getSerializeJavascriptTransaction(avroSerializer, value, schema);
+        .getSerializeJavascriptTransaction(avroSerializer, jsonValue, schema);
 
     JavascriptResult? javascriptResult;
     javascriptResultStreamController.stream.listen((event) {
