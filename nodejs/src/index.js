@@ -657,3 +657,42 @@ flutterAzureEventHubs.api.serialize = function (
         }));
     }
 }
+
+flutterAzureEventHubs.api.deserialize = function (
+    avroSerializerId,
+    messageContent,
+    deserializeOptions,
+    javascriptTransactionId,
+    javascriptResultId) {
+
+    var avroSerializerInstance = flutterAzureEventHubs
+        .getAvroSerializerByKey(avroSerializerId);
+    if (avroSerializerInstance != null) {
+        avroSerializerInstance
+            .deserialize(messageContent, deserializeOptions)
+            .then(function (jsonValue) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: true,
+                    result: jsonValue
+                }));
+            })
+            .catch(function (error) {
+                proxyInterop.postMessage(JSON.stringify({
+                    id: javascriptResultId,
+                    javascriptTransactionId: javascriptTransactionId,
+                    success: false,
+                    result: error.toString()
+                }));
+            });
+    }
+    else {
+        proxyInterop.postMessage(JSON.stringify({
+            id: javascriptResultId,
+            javascriptTransactionId: javascriptTransactionId,
+            success: false,
+            result: "ERROR: AvroSerializer not found."
+        }));
+    }
+}

@@ -16,7 +16,7 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/IDateTimeMapperServ
 import 'package:flutter_azure_event_hubs/Application/Mappers/IIncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IJavascriptTransactionMapperService.dart';
-import 'package:flutter_azure_event_hubs/Application/Mappers/IMessageContentMapperService.dart';
+import 'package:flutter_azure_event_hubs/Crosscutting/Mappers/IMessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IPartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/IReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/ISchemaPropertiesMapperService.dart';
@@ -24,7 +24,7 @@ import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/DateTimeMapper
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/IncomingEventMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptResultMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/JavascriptTransactionMapperService.dart';
-import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/MessageContentMapperService.dart';
+import 'package:flutter_azure_event_hubs/Crosscutting/Mappers/Impl/MessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/PartitionContextMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/ReceivedEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Application/Mappers/Impl/SchemaPropertiesMapperService.dart';
@@ -43,6 +43,7 @@ import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptClientLi
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/JavascriptDomainService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Services/Impl/SchemaRegistryClientDomainService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IAvroSerializerOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IDeserializeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/IEventPositionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISchemaDescriptionMapperService.dart';
@@ -51,6 +52,7 @@ import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISendBatchOption
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ISubscribeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/ITokenCredentialOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/AvroSerializerOptionsMapperService.dart';
+import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/DeserializeOptionsMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventDataMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/EventPositionMapperService.dart';
 import 'package:flutter_azure_event_hubs/Infrastructure/Mappers/Impl/SchemaDescriptionMapperService.dart';
@@ -153,6 +155,8 @@ class Container {
     // Repository Services
     container.registerFactory<IAvroSerializerOptionsMapperService>(
         (c) => new AvroSerializerOptionsMapperService());
+    container.registerFactory<IDeserializeOptionsMapperService>(
+        (c) => new DeserializeOptionsMapperService());
     container.registerFactory<IEventDataMapperService>(
         (c) => new EventDataMapperService());
     container.registerFactory<IEventPositionMapperService>(
@@ -171,7 +175,9 @@ class Container {
 
     container.registerFactory<IAvroSerializerRepositoryService>((c) =>
         new AvroSerializerRepositoryService(
-            c.resolve<IAvroSerializerOptionsMapperService>()));
+            c.resolve<IAvroSerializerOptionsMapperService>(),
+            c.resolve<IMessageContentMapperService>(),
+            c.resolve<IDeserializeOptionsMapperService>()));
     container.registerFactory<IClientSecretCredentialRepositoryService>((c) =>
         new ClientSecretCredentialRepositoryService(
             c.resolve<ITokenCredentialOptionsMapperService>()));

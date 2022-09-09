@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_azure_event_hubs/Application/Mappers/IMessageContentMapperService.dart';
+import 'package:flutter_azure_event_hubs/Crosscutting/Mappers/IMessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/MessageContent.dart';
-import '../../../Crosscutting/JsonMapperService.dart';
+import '../../JsonMapperService.dart';
 
 class MessageContentMapperService extends IMessageContentMapperService {
   @override
