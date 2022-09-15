@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_azure_event_hubs/Application/IAvroSerializerApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
@@ -18,6 +19,7 @@ class Globals {
       clientSecretCredentialApplicationService;
   static ISchemaRegistryClientApplicationService?
       schemaRegistryClientApplicationService;
+  static IAvroSerializerApplicationService? avroSerializerApplicationService;
   static String consumerGroup = "\$default";
   static String connectionString = "connectionString";
   static String eventHubName = "eventHubName";

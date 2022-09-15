@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_azure_event_hubs/Crosscutting/Mappers/IMessageContentMapperService.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/MessageContent.dart';
@@ -13,7 +15,10 @@ class MessageContentMapperService extends IMessageContentMapperService {
 
   @override
   Future<MessageContent> fromMap(Map<String, dynamic> map) async {
-    var result = new MessageContent(map["data"], map["contentType"]);
+    var result = new MessageContent(
+        Uint8List.fromList(
+            List<dynamic>.from(map["data"]).cast<int>().toList()),
+        map["contentType"]);
     return Future.value(result);
   }
 

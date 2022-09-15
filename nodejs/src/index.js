@@ -634,7 +634,7 @@ flutterAzureEventHubs.api.serialize = function (
                     javascriptTransactionId: javascriptTransactionId,
                     success: true,
                     result: JSON.stringify({
-                        data: messageContent.data,
+                        data: Array.apply([], messageContent.data),
                         contentType: messageContent.contentType
                     })
                 }));

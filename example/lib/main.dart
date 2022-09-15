@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter_azure_event_hubs/Application/IAvroSerializerApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
@@ -32,6 +33,8 @@ Future<void> main() async {
       IoC.Container.resolve<IClientSecretCredentialApplicationService>();
   Globals.schemaRegistryClientApplicationService =
       IoC.Container.resolve<ISchemaRegistryClientApplicationService>();
+  Globals.avroSerializerApplicationService =
+      IoC.Container.resolve<IAvroSerializerApplicationService>();
 
   runApp(const MyApp());
 }

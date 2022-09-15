@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializerOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
@@ -254,19 +255,8 @@ class _EventHubControlState extends State<EventHubControl> {
             .createSchemaRegistryClient(
                 Globals.fullyQualifiedNamespace, clientSecretCredential)
             .then((schemaRegistryClient) {
-          String schemaDefinition = "{\n" +
-              "    \"type\" : \"record\",  \n" +
-              "    \"namespace\" : \"damm.lab.eventhubs\", \n" +
-              "    \"name\" : \"Order\", \n" +
-              "    \"fields\" : [\n" +
-              "        { \n" +
-              "            \"name\" : \"id\" , \"type\" : \"string\" \n" +
-              "        }, \n" +
-              "        { \n" +
-              "            \"name\" : \"sourceId\", \"type\" : \"string\" \n" +
-              "        }\n" +
-              "    ]\n" +
-              "}";
+          var schemaDefinition =
+              "{\"type\":\"record\",\"namespace\":\"damm.lab.eventhubs\",\"name\":\"Order\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"sourceId\",\"type\":\"string\"}]}";
           var schemaDescription = SchemaDescription("groupschema1",
               "damm.lab.eventhubs.Order", "avro", schemaDefinition);
           Globals.schemaRegistryClientApplicationService!
@@ -278,6 +268,26 @@ class _EventHubControlState extends State<EventHubControl> {
                     schemaProperties.id +
                     " \n" +
                     Globals.eventHubProducerController.text;
+            var avroSerializerOptions =
+                new AvroSerializerOptions(false, schemaDescription.groupName);
+            Globals.avroSerializerApplicationService!
+                .createAvroSerializer(schemaRegistryClient,
+                    avroSerializerOptions: avroSerializerOptions)
+                .then((avroSerializer) {
+              Globals.avroSerializerApplicationService!
+                  .serialize(
+                      avroSerializer,
+                      "{\"id\":\"id_test\",\"sourceId\":\"sourceId_test\"}",
+                      schemaDefinition)
+                  .then((messageContent) {
+                Globals.eventHubProducerController.text =
+                    DateTime.now().toString() +
+                        ": contentType: " +
+                        messageContent.contentType +
+                        " \n" +
+                        Globals.eventHubProducerController.text;
+              });
+            });
           });
         });
       });
