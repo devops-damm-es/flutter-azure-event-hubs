@@ -25,6 +25,7 @@ class Globals {
   static String clientId = "clientId";
   static String clientSecret = "clientSecret";
   static String fullyQualifiedNamespace = "fullyQualifiedNamespace";
+  static String authorityHost = "authorityHost";
   static EventHubProducerClient? eventHubProducerClient;
   static EventHubConsumerClient? eventHubConsumerClient;
   // ignore: close_sinks

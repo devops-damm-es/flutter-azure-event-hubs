@@ -6,9 +6,8 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaProperties.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaRegistryClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/TokenCredentialOptions.dart';
 import 'package:flutter_azure_event_hubs_example/globals.dart';
 import 'package:uuid/uuid.dart';
 
@@ -244,9 +243,12 @@ class _EventHubControlState extends State<EventHubControl> {
 
   void _sendEventDataBatch() {
     setState(() {
+      var tokenCredentialOptions =
+          new TokenCredentialOptions(Globals.authorityHost);
       Globals.clientSecretCredentialApplicationService!
           .createClientSecretCredential(
-              Globals.tenantId, Globals.clientId, Globals.clientSecret)
+              Globals.tenantId, Globals.clientId, Globals.clientSecret,
+              tokenCredentialOptions: tokenCredentialOptions)
           .then((clientSecretCredential) {
         Globals.schemaRegistryClientApplicationService!
             .createSchemaRegistryClient(
@@ -265,8 +267,8 @@ class _EventHubControlState extends State<EventHubControl> {
               "        }\n" +
               "    ]\n" +
               "}";
-          var schemaDescription = SchemaDescription(
-              "groupschema1", "damm.lab.eventhubs.Order", "avro", "");
+          var schemaDescription = SchemaDescription("groupschema1",
+              "damm.lab.eventhubs.Order", "avro", schemaDefinition);
           Globals.schemaRegistryClientApplicationService!
               .getSchemaProperties(schemaRegistryClient, schemaDescription)
               .then((schemaProperties) {

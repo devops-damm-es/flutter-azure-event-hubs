@@ -11,7 +11,7 @@ class JavascriptRepositoryService extends IJavascriptRepositoryService {
   Future<void> initialize(
       StreamSink<String> javascriptMessageStringStreamSink) async {
     await interactiveWebView.loadHTML("<html><head></head><body></body></html>",
-        baseUrl: "http://127.0.0.1");
+        baseUrl: "http://localhost");
 
     var waitStreamController = StreamController<bool>();
     interactiveWebView.stateChanged.listen((state) async {
