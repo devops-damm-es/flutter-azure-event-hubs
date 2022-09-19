@@ -312,6 +312,7 @@ flutterAzureEventHubs.api.subscribe = function (
                         for (var index in receivedEventDataList) {
                             incomingEvent.receivedEventDataList.push({
                                 body: receivedEventDataList[index].body,
+                                contentType: receivedEventDataList[index].contentType,
                                 enqueuedTimeUtc: receivedEventDataList[index].enqueuedTimeUtc,
                                 partitionKey: receivedEventDataList[index].partitionKey,
                                 offset: receivedEventDataList[index].offset,

@@ -13,7 +13,7 @@ class EventDataMapperService extends IEventDataMapperService {
 
   @override
   Future<EventData> fromMap(Map<String, dynamic> map) async {
-    var result = new EventData(map["body"]);
+    var result = new EventData(map["body"], map["contentType"]);
     return Future.value(result);
   }
 
@@ -51,6 +51,9 @@ class EventDataMapperService extends IEventDataMapperService {
   Future<Map<String, dynamic>> toMap(EventData eventData) async {
     var map = new Map<String, dynamic>();
     map["body"] = eventData.body;
+    if (eventData.contentType != null) {
+      map["contentType"] = eventData.contentType;
+    }
     return Future.value(map);
   }
 }

@@ -1,4 +1,5 @@
 class EventData {
   final dynamic body;
-  EventData(this.body);
+  final String? contentType;
+  EventData(this.body, this.contentType);
 }

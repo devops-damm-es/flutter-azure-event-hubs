@@ -20,6 +20,7 @@ class ReceivedEventDataMapperService extends IReceivedEventDataMapperService {
   Future<ReceivedEventData> fromMap(Map<String, dynamic> map) async {
     var result = new ReceivedEventData(
         map["body"],
+        map["contentType"],
         await _dateTimeMapperService.toDateTimeUtc(map["enqueuedTimeUtc"]),
         map["partitionKey"],
         map["offset"],
@@ -63,6 +64,9 @@ class ReceivedEventDataMapperService extends IReceivedEventDataMapperService {
       ReceivedEventData receivedEventData) async {
     var map = new Map<String, dynamic>();
     map["body"] = receivedEventData.body;
+    if (receivedEventData.contentType != null) {
+      map["contentType"] = receivedEventData.contentType;
+    }
     map["enqueuedTimeUtc"] = await _dateTimeMapperService
         .toStringDateTimeUtc(receivedEventData.enqueuedTimeUtc);
     map["partitionKey"] = receivedEventData.partitionKey;

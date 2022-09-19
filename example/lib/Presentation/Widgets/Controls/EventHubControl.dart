@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializerOptions.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/DeserializeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart'
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/TokenCredentialOptions.dart';
 import 'package:flutter_azure_event_hubs_example/globals.dart';
-import 'package:uuid/uuid.dart';
 
 class EventHubControl extends StatefulWidget {
   @override
@@ -245,68 +243,6 @@ class _EventHubControlState extends State<EventHubControl> {
 
   void _sendEventDataBatch() {
     setState(() {
-      var tokenCredentialOptions =
-          new TokenCredentialOptions(Globals.authorityHost);
-      Globals.clientSecretCredentialApplicationService!
-          .createClientSecretCredential(
-              Globals.tenantId, Globals.clientId, Globals.clientSecret,
-              tokenCredentialOptions: tokenCredentialOptions)
-          .then((clientSecretCredential) {
-        Globals.schemaRegistryClientApplicationService!
-            .createSchemaRegistryClient(
-                Globals.fullyQualifiedNamespace, clientSecretCredential)
-            .then((schemaRegistryClient) {
-          var schemaDefinition =
-              "{\"type\":\"record\",\"namespace\":\"damm.lab.eventhubs\",\"name\":\"Order\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"sourceId\",\"type\":\"string\"}]}";
-          var schemaDescription = SchemaDescription("groupschema1",
-              "damm.lab.eventhubs.Order", "avro", schemaDefinition);
-          Globals.schemaRegistryClientApplicationService!
-              .getSchemaProperties(schemaRegistryClient, schemaDescription)
-              .then((schemaProperties) {
-            Globals.eventHubProducerController.text =
-                DateTime.now().toString() +
-                    ": Schema Id: " +
-                    schemaProperties.id +
-                    " \n" +
-                    Globals.eventHubProducerController.text;
-            var avroSerializerOptions =
-                new AvroSerializerOptions(false, schemaDescription.groupName);
-            Globals.avroSerializerApplicationService!
-                .createAvroSerializer(schemaRegistryClient,
-                    avroSerializerOptions: avroSerializerOptions)
-                .then((avroSerializer) {
-              Globals.avroSerializerApplicationService!
-                  .serialize(
-                      avroSerializer,
-                      "{\"id\":\"id_test\",\"sourceId\":\"sourceId_test\"}",
-                      schemaDefinition)
-                  .then((messageContent) {
-                Globals.eventHubProducerController.text =
-                    DateTime.now().toString() +
-                        ": contentType: " +
-                        messageContent.contentType +
-                        " \n" +
-                        Globals.eventHubProducerController.text;
-
-                var deserializeOptions =
-                    new DeserializeOptions(schemaDefinition);
-                Globals.avroSerializerApplicationService!
-                    .deserialize(avroSerializer, messageContent,
-                        deserializeOptions: deserializeOptions)
-                    .then((jsonValue) {
-                  Globals.eventHubProducerController.text =
-                      DateTime.now().toString() +
-                          ": jsonValue: " +
-                          jsonValue +
-                          " \n" +
-                          Globals.eventHubProducerController.text;
-                });
-              });
-            });
-          });
-        });
-      });
-
       Globals.eventHubProducerClientApplicationService!
           .createEventHubProducerClient(
               Globals.connectionString, Globals.eventHubName)
@@ -316,24 +252,74 @@ class _EventHubControlState extends State<EventHubControl> {
             Globals.eventHubProducerController.text;
         Globals.eventHubProducerClient = value;
 
-        var eventDataList = List<EventData>.empty(growable: true);
-        eventDataList.add(EventData(Uuid().v4()));
-        eventDataList.add(EventData(1));
-        eventDataList.add(EventData(DateTime.now().toUtc().toString()));
+        var tokenCredentialOptions =
+            new TokenCredentialOptions(Globals.authorityHost);
+        Globals.clientSecretCredentialApplicationService!
+            .createClientSecretCredential(
+                Globals.tenantId, Globals.clientId, Globals.clientSecret,
+                tokenCredentialOptions: tokenCredentialOptions)
+            .then((clientSecretCredential) {
+          Globals.schemaRegistryClientApplicationService!
+              .createSchemaRegistryClient(
+                  Globals.fullyQualifiedNamespace, clientSecretCredential)
+              .then((schemaRegistryClient) {
+            var schemaDefinition =
+                "{\"type\":\"record\",\"namespace\":\"damm.lab.eventhubs\",\"name\":\"Order\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"sourceId\",\"type\":\"string\"}]}";
+            var schemaDescription = SchemaDescription("groupschema1",
+                "damm.lab.eventhubs.Order", "avro", schemaDefinition);
+            Globals.schemaRegistryClientApplicationService!
+                .getSchemaProperties(schemaRegistryClient, schemaDescription)
+                .then((schemaProperties) {
+              Globals.eventHubProducerController.text =
+                  DateTime.now().toString() +
+                      ": Schema Id: " +
+                      schemaProperties.id +
+                      " \n" +
+                      Globals.eventHubProducerController.text;
+              var avroSerializerOptions =
+                  new AvroSerializerOptions(false, schemaDescription.groupName);
+              Globals.avroSerializerApplicationService!
+                  .createAvroSerializer(schemaRegistryClient,
+                      avroSerializerOptions: avroSerializerOptions)
+                  .then((avroSerializer) {
+                Globals.avroSerializerApplicationService!
+                    .serialize(
+                        avroSerializer,
+                        "{\"id\":\"id_test\",\"sourceId\":\"sourceId_test\"}",
+                        schemaDefinition)
+                    .then((messageContent) {
+                  Globals.eventHubProducerController.text =
+                      DateTime.now().toString() +
+                          ": contentType: " +
+                          messageContent.contentType +
+                          " \n" +
+                          Globals.eventHubProducerController.text;
 
-        Globals.eventHubProducerClientApplicationService!
-            .sendEventDataBatch(Globals.eventHubProducerClient!, eventDataList)
-            .then((value) {
-          Globals.eventHubProducerController.text = DateTime.now().toString() +
-              ": Send new events.\n" +
-              Globals.eventHubProducerController.text;
-          Globals.eventHubProducerClientApplicationService!
-              .closeEventHubProducerClient(Globals.eventHubProducerClient!)
-              .then((value) {
-            Globals.eventHubProducerController.text =
-                DateTime.now().toString() +
-                    ": EventHubProducerClient closed.\n" +
-                    Globals.eventHubProducerController.text;
+                  var eventDataList = List<EventData>.empty(growable: true);
+                  eventDataList.add(EventData(
+                      messageContent.data, messageContent.contentType));
+
+                  Globals.eventHubProducerClientApplicationService!
+                      .sendEventDataBatch(
+                          Globals.eventHubProducerClient!, eventDataList)
+                      .then((value) {
+                    Globals.eventHubProducerController.text =
+                        DateTime.now().toString() +
+                            ": Send new events.\n" +
+                            Globals.eventHubProducerController.text;
+                    Globals.eventHubProducerClientApplicationService!
+                        .closeEventHubProducerClient(
+                            Globals.eventHubProducerClient!)
+                        .then((value) {
+                      Globals.eventHubProducerController.text =
+                          DateTime.now().toString() +
+                              ": EventHubProducerClient closed.\n" +
+                              Globals.eventHubProducerController.text;
+                    });
+                  });
+                });
+              });
+            });
           });
         });
       });
@@ -363,6 +349,15 @@ class _EventHubControlState extends State<EventHubControl> {
                           event.receivedEventDataList.first.body.toString() +
                           "\n" +
                           Globals.eventHubConsumerController.text;
+
+                  if (event.receivedEventDataList.first.contentType != null) {
+                    Globals.eventHubConsumerController.text =
+                        DateTime.now().toString() +
+                            ": ContentType: " +
+                            event.receivedEventDataList.first.contentType! +
+                            "\n" +
+                            Globals.eventHubConsumerController.text;
+                  }
                 }
               });
             });
