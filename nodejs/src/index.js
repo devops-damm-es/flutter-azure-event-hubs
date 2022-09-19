@@ -622,7 +622,6 @@ flutterAzureEventHubs.api.serialize = function (
     schema,
     javascriptTransactionId,
     javascriptResultId) {
-
     var avroSerializerInstance = flutterAzureEventHubs
         .getAvroSerializerByKey(avroSerializerId);
     if (avroSerializerInstance != null) {
@@ -670,12 +669,12 @@ flutterAzureEventHubs.api.deserialize = function (
     if (avroSerializerInstance != null) {
         avroSerializerInstance
             .deserialize(messageContent, deserializeOptions)
-            .then(function (jsonValue) {
+            .then(function (value) {
                 proxyInterop.postMessage(JSON.stringify({
                     id: javascriptResultId,
                     javascriptTransactionId: javascriptTransactionId,
                     success: true,
-                    result: jsonValue
+                    result: JSON.stringify(value)
                 }));
             })
             .catch(function (error) {

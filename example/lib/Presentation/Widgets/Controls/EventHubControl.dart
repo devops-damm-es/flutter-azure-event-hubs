@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializerOptions.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/DeserializeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
@@ -286,6 +287,20 @@ class _EventHubControlState extends State<EventHubControl> {
                         messageContent.contentType +
                         " \n" +
                         Globals.eventHubProducerController.text;
+
+                var deserializeOptions =
+                    new DeserializeOptions(schemaDefinition);
+                Globals.avroSerializerApplicationService!
+                    .deserialize(avroSerializer, messageContent,
+                        deserializeOptions: deserializeOptions)
+                    .then((jsonValue) {
+                  Globals.eventHubProducerController.text =
+                      DateTime.now().toString() +
+                          ": jsonValue: " +
+                          jsonValue +
+                          " \n" +
+                          Globals.eventHubProducerController.text;
+                });
               });
             });
           });
