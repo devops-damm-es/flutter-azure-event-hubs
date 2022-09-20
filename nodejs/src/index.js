@@ -190,8 +190,13 @@ flutterAzureEventHubs.api.sendEventDataBatch = function (
 
     var eventHubProducerClientInstance = flutterAzureEventHubs
         .getEventHubProducerClientByKey(eventHubProducerClientId);
-
     if (eventHubProducerClientInstance != null) {
+        for (var index in eventDataList) {
+            if (eventDataList[index].contentType != null
+                && eventDataList[index].contentType.toString().startsWith("avro/binary")) {
+                eventDataList[index].body = Uint8Array.from(eventDataList[index].body);
+            }
+        }
         eventHubProducerClientInstance
             .sendBatch(eventDataList, sendBatchOptions)
             .then(function () {
@@ -310,8 +315,13 @@ flutterAzureEventHubs.api.subscribe = function (
                         var incomingEvent = {};
                         incomingEvent.receivedEventDataList = [];
                         for (var index in receivedEventDataList) {
+                            var body = receivedEventDataList[index].body;
+                            if (receivedEventDataList[index].contentType != null
+                                && receivedEventDataList[index].contentType.toString().startsWith("avro/binary")) {
+                                body = Array.apply([], receivedEventDataList[index].body);
+                            }
                             incomingEvent.receivedEventDataList.push({
-                                body: receivedEventDataList[index].body,
+                                body: body,
                                 contentType: receivedEventDataList[index].contentType,
                                 enqueuedTimeUtc: receivedEventDataList[index].enqueuedTimeUtc,
                                 partitionKey: receivedEventDataList[index].partitionKey,
