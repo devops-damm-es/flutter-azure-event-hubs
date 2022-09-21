@@ -5,6 +5,7 @@ import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialAppl
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializer.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
@@ -33,6 +34,9 @@ class Globals {
   // ignore: close_sinks
   static StreamController<IncomingEvent>? incomingEventStreamController;
   static Subscription? subscription;
+  static AvroSerializer? avroSerializer;
+  static String schemaDefinition =
+      "{\"type\":\"record\",\"namespace\":\"damm.lab.eventhubs\",\"name\":\"Order\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"sourceId\",\"type\":\"string\"}]}";
 
   static int bottomNavigationBarSelectedIndex = 0;
 
