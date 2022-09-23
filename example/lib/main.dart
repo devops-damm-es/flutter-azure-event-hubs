@@ -5,8 +5,9 @@ import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialAppl
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
-import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/EventHubControl.dart';
-import 'package:flutter_azure_event_hubs_example/globals.dart';
+import 'package:flutter_azure_event_hubs_example/Configuration.dart';
+import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/AutomaticDemoControl.dart';
+import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/ManualDemoControl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IJavascriptClientLibraryApplicationService.dart';
@@ -25,15 +26,15 @@ Future<void> main() async {
       IoC.Container.resolve<IJavascriptClientLibraryApplicationService>();
   await javascriptClientLibraryApplicationService.initialize();
 
-  Globals.eventHubProducerClientApplicationService =
+  Configuration.eventHubProducerClientApplicationService =
       IoC.Container.resolve<IEventHubProducerClientApplicationService>();
-  Globals.eventHubConsumerClientApplicationService =
+  Configuration.eventHubConsumerClientApplicationService =
       IoC.Container.resolve<IEventHubConsumerClientApplicationService>();
-  Globals.clientSecretCredentialApplicationService =
+  Configuration.clientSecretCredentialApplicationService =
       IoC.Container.resolve<IClientSecretCredentialApplicationService>();
-  Globals.schemaRegistryClientApplicationService =
+  Configuration.schemaRegistryClientApplicationService =
       IoC.Container.resolve<ISchemaRegistryClientApplicationService>();
-  Globals.avroSerializerApplicationService =
+  Configuration.avroSerializerApplicationService =
       IoC.Container.resolve<IAvroSerializerApplicationService>();
 
   runApp(const MyApp());
@@ -113,29 +114,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: width,
                 height: height,
                 child: <Widget>[
-                  EventHubControl(),
-                  Container(child: Text("Avro")),
-                  Container(child: Text("Configuration"))
-                ].elementAt(Globals.bottomNavigationBarSelectedIndex))),
+                  AutomaticDemoControl(),
+                  ManualDemoControl()
+                ].elementAt(Configuration.bottomNavigationBarSelectedIndex))),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: "Home",
+              icon: Icon(Icons.bolt),
+              label: "Automatic Demo",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.business),
-              label: "Avro",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: "Configuration",
+              icon: Icon(Icons.sync),
+              label: "Manual Demo",
             )
           ],
-          currentIndex: Globals.bottomNavigationBarSelectedIndex,
+          currentIndex: Configuration.bottomNavigationBarSelectedIndex,
           onTap: (index) {
             setState(() {
-              Globals.bottomNavigationBarSelectedIndex = index;
+              Configuration.bottomNavigationBarSelectedIndex = index;
             });
           },
         ));

@@ -34,6 +34,7 @@ dependencies:
   google_fonts: 3.0.1
   kiwi: 3.0.0
   uuid: 3.0.6
+  vertical_barchart: 2.0.0+2
   flutter_azure_event_hubs:
     path: ../    
 

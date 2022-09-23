@@ -13,14 +13,15 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/MessageContent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/TokenCredentialOptions.dart';
-import 'package:flutter_azure_event_hubs_example/globals.dart';
+import 'package:flutter_azure_event_hubs_example/Configuration.dart';
+import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/State/ManualDemoState.dart';
 
-class EventHubControl extends StatefulWidget {
+class ManualDemoControl extends StatefulWidget {
   @override
-  State<EventHubControl> createState() => _EventHubControlState();
+  State<ManualDemoControl> createState() => _ManualDemoControlState();
 }
 
-class _EventHubControlState extends State<EventHubControl> {
+class _ManualDemoControlState extends State<ManualDemoControl> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -102,7 +103,7 @@ class _EventHubControlState extends State<EventHubControl> {
             child: TextField(
                 decoration: InputDecoration(
                     labelText: 'Events sended:', border: OutlineInputBorder()),
-                controller: Globals.eventHubProducerController,
+                controller: ManualDemoState.eventHubProducerController,
                 keyboardType: TextInputType.multiline,
                 textAlignVertical: TextAlignVertical.top,
                 expands: true,
@@ -150,7 +151,7 @@ class _EventHubControlState extends State<EventHubControl> {
           child: TextField(
               decoration: InputDecoration(
                   labelText: 'Events received:', border: OutlineInputBorder()),
-              controller: Globals.eventHubConsumerController,
+              controller: ManualDemoState.eventHubConsumerController,
               keyboardType: TextInputType.multiline,
               textAlignVertical: TextAlignVertical.top,
               expands: true,
@@ -176,18 +177,18 @@ class _EventHubControlState extends State<EventHubControl> {
       return Scrollbar(
           thumbVisibility: true,
           trackVisibility: true,
-          controller: Globals.verticalScrollController,
+          controller: ManualDemoState.verticalScrollController,
           child: Scrollbar(
               thumbVisibility: true,
               trackVisibility: true,
               notificationPredicate: (notificationPredicate) =>
                   notificationPredicate.depth == 1,
-              controller: Globals.horizontalScrollController,
+              controller: ManualDemoState.horizontalScrollController,
               child: SingleChildScrollView(
-                  controller: Globals.verticalScrollController,
+                  controller: ManualDemoState.verticalScrollController,
                   scrollDirection: Axis.vertical,
                   child: SingleChildScrollView(
-                      controller: Globals.horizontalScrollController,
+                      controller: ManualDemoState.horizontalScrollController,
                       scrollDirection: Axis.horizontal,
                       child: Container(
                           width: width,
@@ -247,49 +248,51 @@ class _EventHubControlState extends State<EventHubControl> {
 
   void _sendEventDataBatch() {
     setState(() {
-      Globals.eventHubProducerClientApplicationService!
+      Configuration.eventHubProducerClientApplicationService!
           .createEventHubProducerClient(
-              Globals.connectionString, Globals.eventHubName)
+              Configuration.connectionString, ManualDemoState.eventHubName)
           .then((eventHubProducerClient) {
-        Globals.eventHubProducerController.text = DateTime.now().toString() +
-            ": EventHubProducerClient created.\n" +
-            Globals.eventHubProducerController.text;
-        Globals.eventHubProducerClient = eventHubProducerClient;
+        ManualDemoState.eventHubProducerController.text =
+            DateTime.now().toString() +
+                ": EventHubProducerClient created.\n" +
+                ManualDemoState.eventHubProducerController.text;
+        ManualDemoState.eventHubProducerClient = eventHubProducerClient;
 
         getAvroSerializer().then((avroSerializer) {
-          Globals.avroSerializerApplicationService!
+          Configuration.avroSerializerApplicationService!
               .serialize(
                   avroSerializer,
                   "{\"id\":\"id_test\",\"sourceId\":\"sourceId_test\"}",
-                  Globals.schemaDefinition)
+                  Configuration.schemaDefinition)
               .then((messageContent) {
-            Globals.eventHubProducerController.text =
+            ManualDemoState.eventHubProducerController.text =
                 DateTime.now().toString() +
                     ": contentType: " +
                     messageContent.contentType +
                     " \n" +
-                    Globals.eventHubProducerController.text;
+                    ManualDemoState.eventHubProducerController.text;
 
             var eventDataList = List<EventData>.empty(growable: true);
             eventDataList.add(
                 EventData(messageContent.data, messageContent.contentType));
 
-            Globals.eventHubProducerClientApplicationService!
+            Configuration.eventHubProducerClientApplicationService!
                 .sendEventDataBatch(
-                    Globals.eventHubProducerClient!, eventDataList)
+                    ManualDemoState.eventHubProducerClient!, eventDataList)
                 .then((_) {
-              Globals.eventHubProducerController.text =
+              ManualDemoState.eventHubProducerController.text =
                   DateTime.now().toString() +
                       ": Send new events.\n" +
-                      Globals.eventHubProducerController.text;
+                      ManualDemoState.eventHubProducerController.text;
 
-              Globals.eventHubProducerClientApplicationService!
-                  .closeEventHubProducerClient(Globals.eventHubProducerClient!)
+              Configuration.eventHubProducerClientApplicationService!
+                  .closeEventHubProducerClient(
+                      ManualDemoState.eventHubProducerClient!)
                   .then((_) {
-                Globals.eventHubProducerController.text =
+                ManualDemoState.eventHubProducerController.text =
                     DateTime.now().toString() +
                         ": EventHubProducerClient closed.\n" +
-                        Globals.eventHubProducerController.text;
+                        ManualDemoState.eventHubProducerController.text;
               }).onError((error, stackTrace) {
                 eventHubProducerError(error);
               });
@@ -311,40 +314,41 @@ class _EventHubControlState extends State<EventHubControl> {
   void _receiveEventData() {
     setState(() {
       try {
-        if (Globals.eventHubConsumerClient == null) {
-          Globals.eventHubConsumerClientApplicationService!
-              .createEventHubConsumerClient(Globals.consumerGroup,
-                  Globals.connectionString, Globals.eventHubName)
+        if (ManualDemoState.eventHubConsumerClient == null) {
+          Configuration.eventHubConsumerClientApplicationService!
+              .createEventHubConsumerClient(Configuration.consumerGroup,
+                  Configuration.connectionString, ManualDemoState.eventHubName)
               .then((eventHubConsumerClient) {
-            Globals.eventHubConsumerClient = eventHubConsumerClient;
-            Globals.eventHubConsumerController.text =
+            ManualDemoState.eventHubConsumerClient = eventHubConsumerClient;
+            ManualDemoState.eventHubConsumerController.text =
                 DateTime.now().toString() +
                     ": EventHubConsumerClient created.\n" +
-                    Globals.eventHubConsumerController.text;
+                    ManualDemoState.eventHubConsumerController.text;
 
-            if (Globals.incomingEventStreamController == null) {
-              Globals.incomingEventStreamController =
+            if (ManualDemoState.incomingEventStreamController == null) {
+              ManualDemoState.incomingEventStreamController =
                   StreamController<IncomingEvent>();
-              Globals.incomingEventStreamController!.stream.listen((event) {
+              ManualDemoState.incomingEventStreamController!.stream
+                  .listen((event) {
                 setState(() {
                   if (event.receivedEventDataList.isNotEmpty) {
-                    Globals.eventHubConsumerController.text =
+                    ManualDemoState.eventHubConsumerController.text =
                         DateTime.now().toString() +
                             ": Receive new event: " +
                             event.receivedEventDataList.first.body.toString() +
                             "\n" +
-                            Globals.eventHubConsumerController.text;
+                            ManualDemoState.eventHubConsumerController.text;
 
                     if (event.receivedEventDataList.first.contentType != null) {
-                      Globals.eventHubConsumerController.text =
+                      ManualDemoState.eventHubConsumerController.text =
                           DateTime.now().toString() +
                               ": ContentType: " +
                               event.receivedEventDataList.first.contentType! +
                               "\n" +
-                              Globals.eventHubConsumerController.text;
+                              ManualDemoState.eventHubConsumerController.text;
 
                       getAvroSerializer().then((avroSerializer) {
-                        Globals.avroSerializerApplicationService!
+                        Configuration.avroSerializerApplicationService!
                             .deserialize(
                                 avroSerializer,
                                 new MessageContent(
@@ -354,14 +358,15 @@ class _EventHubControlState extends State<EventHubControl> {
                                     event.receivedEventDataList.first
                                         .contentType!),
                                 deserializeOptions: new DeserializeOptions(
-                                    Globals.schemaDefinition))
+                                    Configuration.schemaDefinition))
                             .then((jsonValue) {
-                          Globals.eventHubConsumerController.text =
+                          ManualDemoState.eventHubConsumerController.text =
                               DateTime.now().toString() +
                                   ": jsonValue: " +
                                   jsonValue +
                                   "\n" +
-                                  Globals.eventHubConsumerController.text;
+                                  ManualDemoState
+                                      .eventHubConsumerController.text;
                         }).onError((error, stackTrace) {
                           eventHubConsumerError(error);
                         });
@@ -372,77 +377,82 @@ class _EventHubControlState extends State<EventHubControl> {
                   }
                 });
               });
-              Globals.eventHubConsumerClientApplicationService!
-                  .subscribe(Globals.eventHubConsumerClient!,
-                      Globals.incomingEventStreamController!.sink,
+              Configuration.eventHubConsumerClientApplicationService!
+                  .subscribe(ManualDemoState.eventHubConsumerClient!,
+                      ManualDemoState.incomingEventStreamController!.sink,
                       subscribeOptions: SubscribeOptions(null, null,
                           EventPosition(0, null, null, null), null, null, null))
                   .then((subscription) {
-                Globals.subscription = subscription;
-                Globals.eventHubConsumerController.text =
+                ManualDemoState.subscription = subscription;
+                ManualDemoState.eventHubConsumerController.text =
                     DateTime.now().toString() +
                         ": Subscribe.\n" +
-                        Globals.eventHubConsumerController.text;
+                        ManualDemoState.eventHubConsumerController.text;
               }).onError((error, stackTrace) {
                 eventHubConsumerError(error);
               });
             } else {
-              Globals.eventHubConsumerController.text =
+              ManualDemoState.eventHubConsumerController.text =
                   DateTime.now().toString() +
                       ": Already subscribed.\n" +
-                      Globals.eventHubConsumerController.text;
+                      ManualDemoState.eventHubConsumerController.text;
             }
           }).onError((error, stackTrace) {
             eventHubConsumerError(error);
           });
         } else {
-          Globals.eventHubConsumerController.text = DateTime.now().toString() +
-              ": EventHubConsumerClient already created.\n" +
-              Globals.eventHubConsumerController.text;
+          ManualDemoState.eventHubConsumerController.text =
+              DateTime.now().toString() +
+                  ": EventHubConsumerClient already created.\n" +
+                  ManualDemoState.eventHubConsumerController.text;
         }
       } catch (error) {
-        Globals.eventHubConsumerController.text = DateTime.now().toString() +
-            ": ERROR: " +
-            error.toString() +
-            "\n" +
-            Globals.eventHubConsumerController.text;
+        ManualDemoState.eventHubConsumerController.text =
+            DateTime.now().toString() +
+                ": ERROR: " +
+                error.toString() +
+                "\n" +
+                ManualDemoState.eventHubConsumerController.text;
       }
     });
   }
 
   void _closeReceiveEventData() {
     setState(() {
-      if (Globals.subscription != null) {
-        Globals.eventHubConsumerClientApplicationService!
-            .closeSubscription(Globals.subscription!)
+      if (ManualDemoState.subscription != null) {
+        Configuration.eventHubConsumerClientApplicationService!
+            .closeSubscription(ManualDemoState.subscription!)
             .then((value) {
-          Globals.incomingEventStreamController!.close().then((value) {
-            Globals.incomingEventStreamController = null;
-            Globals.subscription = null;
-            Globals.eventHubConsumerController.text =
+          ManualDemoState.incomingEventStreamController!.close().then((value) {
+            ManualDemoState.incomingEventStreamController = null;
+            ManualDemoState.subscription = null;
+            ManualDemoState.eventHubConsumerController.text =
                 DateTime.now().toString() +
                     ": Subscription closed.\n" +
-                    Globals.eventHubConsumerController.text;
+                    ManualDemoState.eventHubConsumerController.text;
 
-            Globals.eventHubConsumerClientApplicationService!
-                .closeEventHubConsumerClient(Globals.eventHubConsumerClient!)
+            Configuration.eventHubConsumerClientApplicationService!
+                .closeEventHubConsumerClient(
+                    ManualDemoState.eventHubConsumerClient!)
                 .then((value) {
-              if (Globals.incomingEventStreamController != null) {
-                Globals.incomingEventStreamController!.close().then((value) {
-                  Globals.incomingEventStreamController = null;
-                  Globals.subscription = null;
-                  Globals.eventHubConsumerClient = null;
-                  Globals.eventHubConsumerController.text =
+              if (ManualDemoState.incomingEventStreamController != null) {
+                ManualDemoState.incomingEventStreamController!
+                    .close()
+                    .then((value) {
+                  ManualDemoState.incomingEventStreamController = null;
+                  ManualDemoState.subscription = null;
+                  ManualDemoState.eventHubConsumerClient = null;
+                  ManualDemoState.eventHubConsumerController.text =
                       DateTime.now().toString() +
                           ": EventHubConsumerClient closed.\n" +
-                          Globals.eventHubConsumerController.text;
+                          ManualDemoState.eventHubConsumerController.text;
                 });
               } else {
-                Globals.eventHubConsumerClient = null;
-                Globals.eventHubConsumerController.text =
+                ManualDemoState.eventHubConsumerClient = null;
+                ManualDemoState.eventHubConsumerController.text =
                     DateTime.now().toString() +
                         ": EventHubConsumerClient closed.\n" +
-                        Globals.eventHubConsumerController.text;
+                        ManualDemoState.eventHubConsumerController.text;
               }
             }).onError((error, stackTrace) {
               eventHubConsumerError(error);
@@ -454,51 +464,55 @@ class _EventHubControlState extends State<EventHubControl> {
           eventHubConsumerError(error);
         });
       } else {
-        Globals.eventHubConsumerController.text = DateTime.now().toString() +
-            ": There is no subscription created.\n" +
-            Globals.eventHubConsumerController.text;
+        ManualDemoState.eventHubConsumerController.text =
+            DateTime.now().toString() +
+                ": There is no subscription created.\n" +
+                ManualDemoState.eventHubConsumerController.text;
       }
     });
   }
 
   Future<AvroSerializer> getAvroSerializer() async {
-    if (Globals.avroSerializer == null) {
-      var clientSecretCredential = await Globals
+    if (Configuration.avroSerializer == null) {
+      var clientSecretCredential = await Configuration
           .clientSecretCredentialApplicationService!
-          .createClientSecretCredential(
-              Globals.tenantId, Globals.clientId, Globals.clientSecret,
+          .createClientSecretCredential(Configuration.tenantId,
+              Configuration.clientId, Configuration.clientSecret,
               tokenCredentialOptions:
-                  new TokenCredentialOptions(Globals.authorityHost));
+                  new TokenCredentialOptions(Configuration.authorityHost));
 
-      var schemaRegistryClient = await Globals
+      var schemaRegistryClient = await Configuration
           .schemaRegistryClientApplicationService!
           .createSchemaRegistryClient(
-              Globals.fullyQualifiedNamespace, clientSecretCredential);
+              Configuration.fullyQualifiedNamespace, clientSecretCredential);
 
       var schemaDescription = SchemaDescription("groupschema1",
-          "damm.lab.eventhubs.Order", "avro", Globals.schemaDefinition);
+          "damm.lab.eventhubs.Order", "avro", Configuration.schemaDefinition);
 
-      Globals.avroSerializer = await Globals.avroSerializerApplicationService!
+      Configuration.avroSerializer = await Configuration
+          .avroSerializerApplicationService!
           .createAvroSerializer(schemaRegistryClient,
               avroSerializerOptions: new AvroSerializerOptions(
                   false, schemaDescription.groupName));
     }
-    return Future.value(Globals.avroSerializer!);
+    return Future.value(Configuration.avroSerializer!);
   }
 
   void eventHubProducerError(dynamic error) {
-    Globals.eventHubProducerController.text = DateTime.now().toString() +
-        ": ERROR: " +
-        error.toString() +
-        "\n" +
-        Globals.eventHubProducerController.text;
+    ManualDemoState.eventHubProducerController.text =
+        DateTime.now().toString() +
+            ": ERROR: " +
+            error.toString() +
+            "\n" +
+            ManualDemoState.eventHubProducerController.text;
   }
 
   void eventHubConsumerError(dynamic error) {
-    Globals.eventHubConsumerController.text = DateTime.now().toString() +
-        ": ERROR: " +
-        error.toString() +
-        "\n" +
-        Globals.eventHubConsumerController.text;
+    ManualDemoState.eventHubConsumerController.text =
+        DateTime.now().toString() +
+            ": ERROR: " +
+            error.toString() +
+            "\n" +
+            ManualDemoState.eventHubConsumerController.text;
   }
 }
