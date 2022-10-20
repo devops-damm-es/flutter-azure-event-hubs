@@ -24,6 +24,8 @@ class AutomaticDemoState {
 
   static TextEditingController textEditingController = TextEditingController();
 
+  static String name = "";
+  static bool isStarted = false;
   static List<VBarChartModel> vBarChartModelList =
       List<VBarChartModel>.empty(growable: true);
 }

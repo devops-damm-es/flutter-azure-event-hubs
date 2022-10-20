@@ -34,6 +34,11 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                   (widthBreakpoint.columns + 1))) /
           widthBreakpoint.columns;
 
+      var buttonsInBottom = widthBreakpoint.window == WindowSize.xsmall ||
+              widthBreakpoint.window == WindowSize.small
+          ? true
+          : false;
+
       var heightBreakpoint = Breakpoint.fromConstraints(
           BoxConstraints(maxWidth: height, maxHeight: width));
       var breakpointMarginHeight = heightBreakpoint.gutters;
@@ -44,34 +49,82 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                   (heightBreakpoint.columns + 1))) /
           heightBreakpoint.columns;
 
-      var eventHubProducerWidth =
-          (breakpointColumnsWidth * widthBreakpoint.columns) +
-              (breakpointGutterWidth * (widthBreakpoint.columns - 1));
+      var eventHubProducerTextFieldWidth = buttonsInBottom
+          ? (breakpointColumnsWidth * widthBreakpoint.columns) +
+              (breakpointGutterWidth * (widthBreakpoint.columns - 1))
+          : (breakpointColumnsWidth * (widthBreakpoint.columns - 2)) +
+              (breakpointGutterWidth * (widthBreakpoint.columns - 3));
 
-      var eventHubProducerHeight = breakpointColumnsHeight;
+      var eventHubProducerTextFieldHeight = breakpointColumnsHeight;
 
       var eventHubConsumerWidth =
           (breakpointColumnsWidth * widthBreakpoint.columns) +
               (breakpointGutterWidth * (widthBreakpoint.columns - 1));
 
-      var eventHubConsumerHeight =
-          (breakpointColumnsHeight * (heightBreakpoint.columns - 1)) +
+      var eventHubConsumerHeight = buttonsInBottom
+          ? (breakpointColumnsHeight * (heightBreakpoint.columns - 2)) +
+              (breakpointGutterHeight * (heightBreakpoint.columns - 3))
+          : (breakpointColumnsHeight * (heightBreakpoint.columns - 1)) +
               (breakpointGutterHeight * (heightBreakpoint.columns - 2));
+
+      var eventHubProducerConsumerButtonsContainerWidth = buttonsInBottom
+          ? (breakpointColumnsWidth * widthBreakpoint.columns) +
+              (breakpointGutterWidth * (widthBreakpoint.columns - 1))
+          : (breakpointColumnsWidth * 2) + breakpointGutterWidth;
+
+      var eventHubProducerConsumerButtonsContainerHeight =
+          breakpointColumnsHeight;
+
+      var eventHubProducerButtonsWidth = buttonsInBottom
+          ? (breakpointColumnsWidth * (widthBreakpoint.columns / 2)) -
+              breakpointGutterHeight
+          : eventHubProducerConsumerButtonsContainerWidth;
+
+      var eventHubProducerButtonsWidgets = <Widget>[
+        Container(
+            width: eventHubProducerButtonsWidth,
+            height: 36,
+            child: ElevatedButton(
+                onPressed: AutomaticDemoState.name.length > 0
+                    ? _toggleAutomaticDemo
+                    : null,
+                child: Text(AutomaticDemoState.isStarted ? "STOP" : "START")))
+      ];
 
       var eventHubProducerWidgets = <Widget>[
         Container(
-            width: eventHubProducerWidth,
-            height: eventHubProducerHeight,
+            width: eventHubProducerTextFieldWidth,
+            height: eventHubProducerTextFieldHeight,
             child: TextField(
                 decoration: InputDecoration(
                     labelText: 'Name:',
                     counterText: "",
                     border: OutlineInputBorder()),
                 controller: AutomaticDemoState.textEditingController,
+                onChanged: (value) {
+                  setState(() {
+                    AutomaticDemoState.name =
+                        AutomaticDemoState.textEditingController.text.trim();
+                  });
+                },
                 keyboardType: TextInputType.name,
                 textAlignVertical: TextAlignVertical.top,
-                readOnly: false,
-                maxLength: 100))
+                readOnly: AutomaticDemoState.isStarted ? true : false,
+                maxLength: 100)),
+        Container(
+            width: buttonsInBottom ? 10 : breakpointGutterWidth,
+            height: buttonsInBottom ? breakpointGutterHeight : 10),
+        Container(
+            width: eventHubProducerConsumerButtonsContainerWidth,
+            height: eventHubProducerConsumerButtonsContainerHeight,
+            child: buttonsInBottom
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: eventHubProducerButtonsWidgets,
+                  )
+                : Column(
+                    children: eventHubProducerButtonsWidgets,
+                  ))
       ];
 
       var eventHubConsumerWidgets = <Widget>[
@@ -124,10 +177,16 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                                       Container(
                                           width: breakpointMarginWidth,
                                           height: 10),
-                                      Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: eventHubProducerWidgets),
+                                      buttonsInBottom
+                                          ? Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: eventHubProducerWidgets)
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children:
+                                                  eventHubProducerWidgets),
                                       Container(
                                           width: breakpointMarginWidth,
                                           height: 10)
@@ -152,5 +211,23 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                                     width: 10, height: breakpointMarginHeight)
                               ]))))));
     });
+  }
+
+  void _toggleAutomaticDemo() {
+    setState(() {
+      if (AutomaticDemoState.isStarted == false) {
+        _startAutomaticDemo();
+      } else {
+        _stopAutomaticDemo();
+      }
+    });
+  }
+
+  void _startAutomaticDemo() {
+    AutomaticDemoState.isStarted = true;
+  }
+
+  void _stopAutomaticDemo() {
+    AutomaticDemoState.isStarted = false;
   }
 }
