@@ -26,6 +26,8 @@ class AutomaticDemoState {
 
   static String name = "";
   static bool isStarted = false;
+  static bool isInitializing = false;
+  static bool stopRequest = false;
   static List<VBarChartModel> vBarChartModelList =
       List<VBarChartModel>.empty(growable: true);
 }

@@ -258,7 +258,7 @@ class _ManualDemoControlState extends State<ManualDemoControl> {
                 ManualDemoState.eventHubProducerController.text;
         ManualDemoState.eventHubProducerClient = eventHubProducerClient;
 
-        getAvroSerializer().then((avroSerializer) {
+        Configuration.getAvroSerializer().then((avroSerializer) {
           Configuration.avroSerializerApplicationService!
               .serialize(
                   avroSerializer,
@@ -347,7 +347,7 @@ class _ManualDemoControlState extends State<ManualDemoControl> {
                               "\n" +
                               ManualDemoState.eventHubConsumerController.text;
 
-                      getAvroSerializer().then((avroSerializer) {
+                      Configuration.getAvroSerializer().then((avroSerializer) {
                         Configuration.avroSerializerApplicationService!
                             .deserialize(
                                 avroSerializer,
@@ -470,32 +470,6 @@ class _ManualDemoControlState extends State<ManualDemoControl> {
                 ManualDemoState.eventHubConsumerController.text;
       }
     });
-  }
-
-  Future<AvroSerializer> getAvroSerializer() async {
-    if (Configuration.avroSerializer == null) {
-      var clientSecretCredential = await Configuration
-          .clientSecretCredentialApplicationService!
-          .createClientSecretCredential(Configuration.tenantId,
-              Configuration.clientId, Configuration.clientSecret,
-              tokenCredentialOptions:
-                  new TokenCredentialOptions(Configuration.authorityHost));
-
-      var schemaRegistryClient = await Configuration
-          .schemaRegistryClientApplicationService!
-          .createSchemaRegistryClient(
-              Configuration.fullyQualifiedNamespace, clientSecretCredential);
-
-      var schemaDescription = SchemaDescription("groupschema1",
-          "damm.lab.eventhubs.Order", "avro", Configuration.schemaDefinition);
-
-      Configuration.avroSerializer = await Configuration
-          .avroSerializerApplicationService!
-          .createAvroSerializer(schemaRegistryClient,
-              avroSerializerOptions: new AvroSerializerOptions(
-                  false, schemaDescription.groupName));
-    }
-    return Future.value(Configuration.avroSerializer!);
   }
 
   void eventHubProducerError(dynamic error) {

@@ -1,6 +1,10 @@
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializer.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
+import 'package:flutter_azure_event_hubs_example/Configuration.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/State/AutomaticDemoState.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vertical_barchart/vertical-barchart.dart';
 import 'package:vertical_barchart/vertical-legend.dart';
 
@@ -85,10 +89,18 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
             width: eventHubProducerButtonsWidth,
             height: 36,
             child: ElevatedButton(
-                onPressed: AutomaticDemoState.name.length > 0
+                onPressed: AutomaticDemoState.name.length > 0 &&
+                        AutomaticDemoState.isInitializing == false &&
+                        AutomaticDemoState.stopRequest == false
                     ? _toggleAutomaticDemo
                     : null,
-                child: Text(AutomaticDemoState.isStarted ? "STOP" : "START")))
+                child: Text(AutomaticDemoState.isStarted
+                    ? AutomaticDemoState.stopRequest
+                        ? "STOPPING..."
+                        : "STOP"
+                    : AutomaticDemoState.isInitializing
+                        ? "INITIALIZING..."
+                        : "START")))
       ];
 
       var eventHubProducerWidgets = <Widget>[
@@ -166,50 +178,61 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                       child: Container(
                           width: width,
                           height: height,
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                Container(
-                                    width: 10, height: breakpointMarginHeight),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: <Widget>[
-                                      Container(
-                                          width: breakpointMarginWidth,
-                                          height: 10),
-                                      buttonsInBottom
-                                          ? Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: eventHubProducerWidgets)
-                                          : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children:
-                                                  eventHubProducerWidgets),
-                                      Container(
-                                          width: breakpointMarginWidth,
-                                          height: 10)
-                                    ]),
-                                Container(
-                                    width: 10, height: breakpointGutterHeight),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: <Widget>[
-                                      Container(
-                                          width: breakpointMarginWidth,
-                                          height: 10),
-                                      Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: eventHubConsumerWidgets),
-                                      Container(
-                                          width: breakpointMarginWidth,
-                                          height: 10)
-                                    ]),
-                                Container(
-                                    width: 10, height: breakpointMarginHeight)
-                              ]))))));
+                          child: Stack(children: [
+                            AutomaticDemoState.isInitializing ||
+                                    AutomaticDemoState.stopRequest
+                                ? LinearProgressIndicator()
+                                : Container(),
+                            Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                      width: 10,
+                                      height: breakpointMarginHeight),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10),
+                                        buttonsInBottom
+                                            ? Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children:
+                                                    eventHubProducerWidgets)
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children:
+                                                    eventHubProducerWidgets),
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10)
+                                      ]),
+                                  Container(
+                                      width: 10,
+                                      height: breakpointGutterHeight),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10),
+                                        Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: eventHubConsumerWidgets),
+                                        Container(
+                                            width: breakpointMarginWidth,
+                                            height: 10)
+                                      ]),
+                                  Container(
+                                      width: 10, height: breakpointMarginHeight)
+                                ])
+                          ]))))));
     });
   }
 
@@ -224,10 +247,67 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
   }
 
   void _startAutomaticDemo() {
-    AutomaticDemoState.isStarted = true;
+    AutomaticDemoState.isInitializing = true;
+    Configuration.eventHubProducerClientApplicationService!
+        .createEventHubProducerClient(Configuration.connectionString,
+            AutomaticDemoState.fromClientToServerEventHubName)
+        .then((eventHubProducerClient) {
+      setState(() {
+        AutomaticDemoState.eventHubProducerClient = eventHubProducerClient;
+
+        Configuration.getAvroSerializer().then((avroSerializer) {
+          setState(() {
+            _sendEventDataBatch(avroSerializer);
+          });
+        });
+      });
+    });
   }
 
   void _stopAutomaticDemo() {
-    AutomaticDemoState.isStarted = false;
+    AutomaticDemoState.stopRequest = true;
+  }
+
+  void _sendEventDataBatch(AvroSerializer avroSerializer) async {
+    Configuration.avroSerializerApplicationService!
+        .serialize(
+            avroSerializer,
+            "{\"id\":\"" +
+                Uuid().v4() +
+                "\",\"sourceId\":\"" +
+                AutomaticDemoState.name +
+                "\"}",
+            Configuration.schemaDefinition)
+        .then((messageContent) {
+      setState(() {
+        var eventDataList = List<EventData>.empty(growable: true);
+        eventDataList
+            .add(EventData(messageContent.data, messageContent.contentType));
+
+        Configuration.eventHubProducerClientApplicationService!
+            .sendEventDataBatch(
+                AutomaticDemoState.eventHubProducerClient!, eventDataList)
+            .then((_) {
+          setState(() {
+            if (AutomaticDemoState.stopRequest == false) {
+              AutomaticDemoState.isInitializing = false;
+              AutomaticDemoState.isStarted = true;
+              _sendEventDataBatch(avroSerializer);
+            } else {
+              Configuration.eventHubProducerClientApplicationService!
+                  .closeEventHubProducerClient(
+                      AutomaticDemoState.eventHubProducerClient!)
+                  .then((_) {
+                setState(() {
+                  AutomaticDemoState.eventHubProducerClient = null;
+                  AutomaticDemoState.isStarted = false;
+                  AutomaticDemoState.stopRequest = false;
+                });
+              });
+            }
+          });
+        });
+      });
+    });
   }
 }
