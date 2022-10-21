@@ -7,6 +7,7 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializer.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializerOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/TokenCredentialOptions.dart';
+import 'package:flutter_azure_event_hubs_example/Application/Mappers/IOrderMapperService.dart';
 
 class Configuration {
   static IEventHubProducerClientApplicationService?
@@ -18,6 +19,7 @@ class Configuration {
   static ISchemaRegistryClientApplicationService?
       schemaRegistryClientApplicationService;
   static IAvroSerializerApplicationService? avroSerializerApplicationService;
+  static IOrderMapperService? orderMapperService;
   static String consumerGroup = "\$default";
   static String connectionString = "connectionString";
   static String tenantId = "tenantId";

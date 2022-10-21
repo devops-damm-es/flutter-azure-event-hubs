@@ -3,16 +3,12 @@ import 'dart:typed_data';
 
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializer.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializerOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/DeserializeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/MessageContent.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/SchemaDescription.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
-import 'package:flutter_azure_event_hubs/Domain/Entities/TokenCredentialOptions.dart';
 import 'package:flutter_azure_event_hubs_example/Configuration.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/State/ManualDemoState.dart';
 

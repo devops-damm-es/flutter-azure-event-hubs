@@ -4,6 +4,7 @@ import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubConsumerClient.
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventHubProducerClient.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/Subscription.dart';
+import 'package:flutter_azure_event_hubs_example/Domain/Entities/Order.dart';
 import 'package:vertical_barchart/vertical-barchartmodel.dart';
 
 class AutomaticDemoState {
@@ -28,6 +29,9 @@ class AutomaticDemoState {
   static bool isStarted = false;
   static bool isInitializing = false;
   static bool stopRequest = false;
+  static List<Order> orderList = List<Order>.empty(growable: true);
   static List<VBarChartModel> vBarChartModelList =
       List<VBarChartModel>.empty(growable: true);
+  static String offset = "0";
+  static double maxMessagesSecond = 0;
 }

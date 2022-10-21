@@ -1,12 +1,23 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:breakpoint/breakpoint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/AvroSerializer.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/DeserializeOptions.dart';
 import 'package:flutter_azure_event_hubs/Domain/Entities/EventData.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/EventPosition.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/IncomingEvent.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/MessageContent.dart';
+import 'package:flutter_azure_event_hubs/Domain/Entities/SubscribeOptions.dart';
 import 'package:flutter_azure_event_hubs_example/Configuration.dart';
+import 'package:flutter_azure_event_hubs_example/Domain/Entities/Order.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/State/AutomaticDemoState.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vertical_barchart/vertical-barchart.dart';
+import 'package:vertical_barchart/vertical-barchartmodel.dart';
 import 'package:vertical_barchart/vertical-legend.dart';
+import 'package:flinq/flinq.dart';
 
 class AutomaticDemoControl extends StatefulWidget {
   @override
@@ -143,20 +154,22 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
         Container(
             width: eventHubConsumerWidth,
             height: eventHubConsumerHeight,
-            child: VerticalBarchart(
-                maxX: 55,
-                data: AutomaticDemoState.vBarChartModelList,
-                showLegend: true,
-                showBackdrop: true,
-                barStyle: BarStyle.CIRCLE,
-                alwaysShowDescription: true,
-                legend: [
+            child: Card(
+                child: VerticalBarchart(
+                    maxX: AutomaticDemoState.maxMessagesSecond,
+                    data: AutomaticDemoState.vBarChartModelList,
+                    showLegend: true,
+                    showBackdrop: true,
+                    background: Colors.transparent,
+                    barStyle: BarStyle.CIRCLE,
+                    alwaysShowDescription: true,
+                    legend: [
                   Vlegend(
                     isSquare: false,
                     color: Theme.of(context).primaryColor,
-                    text: "Messages",
+                    text: "Messages / Second",
                   )
-                ]))
+                ])))
       ];
 
       return Scrollbar(
@@ -223,7 +236,7 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                                             height: 10),
                                         Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                                MainAxisAlignment.start,
                                             children: eventHubConsumerWidgets),
                                         Container(
                                             width: breakpointMarginWidth,
@@ -255,9 +268,24 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
       setState(() {
         AutomaticDemoState.eventHubProducerClient = eventHubProducerClient;
 
-        Configuration.getAvroSerializer().then((avroSerializer) {
+        Configuration.eventHubConsumerClientApplicationService!
+            .createEventHubConsumerClient(
+                Configuration.consumerGroup,
+                Configuration.connectionString,
+                AutomaticDemoState.fromServerToClientEventHubName)
+            .then((eventHubConsumerClient) {
           setState(() {
-            _sendEventDataBatch(avroSerializer);
+            AutomaticDemoState.eventHubConsumerClient = eventHubConsumerClient;
+
+            Configuration.getAvroSerializer().then((avroSerializer) {
+              setState(() {
+                _sendEventDataBatch(avroSerializer);
+                _incomingEventData(avroSerializer);
+                Future.delayed(Duration(seconds: 1)).then((_) {
+                  _refreshVerticalBarchart();
+                });
+              });
+            });
           });
         });
       });
@@ -268,46 +296,132 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
     AutomaticDemoState.stopRequest = true;
   }
 
-  void _sendEventDataBatch(AvroSerializer avroSerializer) async {
-    Configuration.avroSerializerApplicationService!
-        .serialize(
-            avroSerializer,
-            "{\"id\":\"" +
-                Uuid().v4() +
-                "\",\"sourceId\":\"" +
-                AutomaticDemoState.name +
-                "\"}",
-            Configuration.schemaDefinition)
-        .then((messageContent) {
-      setState(() {
-        var eventDataList = List<EventData>.empty(growable: true);
-        eventDataList
-            .add(EventData(messageContent.data, messageContent.contentType));
+  void _sendEventDataBatch(AvroSerializer avroSerializer) {
+    Configuration.orderMapperService!
+        .toJson(Order(Uuid().v4(), AutomaticDemoState.name))
+        .then((jsonOrder) {
+      Configuration.avroSerializerApplicationService!
+          .serialize(avroSerializer, jsonOrder, Configuration.schemaDefinition)
+          .then((messageContent) {
+        setState(() {
+          var eventDataList = List<EventData>.empty(growable: true);
+          eventDataList
+              .add(EventData(messageContent.data, messageContent.contentType));
 
-        Configuration.eventHubProducerClientApplicationService!
-            .sendEventDataBatch(
-                AutomaticDemoState.eventHubProducerClient!, eventDataList)
-            .then((_) {
-          setState(() {
-            if (AutomaticDemoState.stopRequest == false) {
-              AutomaticDemoState.isInitializing = false;
-              AutomaticDemoState.isStarted = true;
-              _sendEventDataBatch(avroSerializer);
-            } else {
-              Configuration.eventHubProducerClientApplicationService!
-                  .closeEventHubProducerClient(
-                      AutomaticDemoState.eventHubProducerClient!)
-                  .then((_) {
-                setState(() {
-                  AutomaticDemoState.eventHubProducerClient = null;
-                  AutomaticDemoState.isStarted = false;
-                  AutomaticDemoState.stopRequest = false;
+          Configuration.eventHubProducerClientApplicationService!
+              .sendEventDataBatch(
+                  AutomaticDemoState.eventHubProducerClient!, eventDataList)
+              .then((_) {
+            setState(() {
+              if (AutomaticDemoState.stopRequest == false) {
+                AutomaticDemoState.isInitializing = false;
+                AutomaticDemoState.isStarted = true;
+                _sendEventDataBatch(avroSerializer);
+              } else {
+                Configuration.eventHubProducerClientApplicationService!
+                    .closeEventHubProducerClient(
+                        AutomaticDemoState.eventHubProducerClient!)
+                    .then((_) {
+                  setState(() {
+                    AutomaticDemoState.eventHubProducerClient = null;
+                    AutomaticDemoState.isStarted = false;
+                    AutomaticDemoState.stopRequest = false;
+                  });
                 });
-              });
-            }
+              }
+            });
           });
         });
       });
     });
+  }
+
+  void _incomingEventData(AvroSerializer avroSerializer) {
+    AutomaticDemoState.incomingEventStreamController =
+        StreamController<IncomingEvent>();
+    AutomaticDemoState.incomingEventStreamController!.stream.listen((event) {
+      if (event.receivedEventDataList.isNotEmpty) {
+        for (var receivedEventData in event.receivedEventDataList) {
+          AutomaticDemoState.offset = receivedEventData.offset;
+          Configuration.avroSerializerApplicationService!
+              .deserialize(
+                  avroSerializer,
+                  new MessageContent(
+                      Uint8List.fromList(receivedEventData.body.cast<int>()),
+                      receivedEventData.contentType!),
+                  deserializeOptions:
+                      new DeserializeOptions(Configuration.schemaDefinition))
+              .then((jsonOrder) {
+            Configuration.orderMapperService!.fromJson(jsonOrder).then((order) {
+              AutomaticDemoState.orderList.add(order);
+            });
+          });
+        }
+      }
+    });
+    Configuration.eventHubConsumerClientApplicationService!
+        .subscribe(AutomaticDemoState.eventHubConsumerClient!,
+            AutomaticDemoState.incomingEventStreamController!.sink,
+            subscribeOptions: SubscribeOptions(
+                null,
+                null,
+                EventPosition(AutomaticDemoState.offset, null, null, null),
+                null,
+                null,
+                null))
+        .then((subscription) {
+      AutomaticDemoState.subscription = subscription;
+    });
+  }
+
+  void _refreshVerticalBarchart() {
+    AutomaticDemoState.vBarChartModelList.clear();
+    if (AutomaticDemoState.stopRequest == false) {
+      var orderSourceIdList = List<String>.empty(growable: true);
+      for (var order in AutomaticDemoState.orderList) {
+        var orderSourceId =
+            orderSourceIdList.firstOrNullWhere((x) => x == order.sourceId);
+        if (orderSourceId == null) {
+          orderSourceIdList.add(order.sourceId);
+        }
+      }
+      for (var orderSourceId in orderSourceIdList) {
+        var countOrderSourceId = AutomaticDemoState.orderList
+            .where((x) => x.sourceId == orderSourceId)
+            .toList()
+            .length as double;
+        var stringOrderSourceId = countOrderSourceId.toString();
+        if (countOrderSourceId > AutomaticDemoState.maxMessagesSecond) {
+          AutomaticDemoState.maxMessagesSecond = countOrderSourceId;
+        }
+        AutomaticDemoState.vBarChartModelList.add(VBarChartModel(
+          index: AutomaticDemoState.vBarChartModelList.length,
+          label: orderSourceId,
+          colors: [Colors.orange, Colors.deepOrange],
+          jumlah: countOrderSourceId,
+          tooltip: stringOrderSourceId,
+        ));
+      }
+      AutomaticDemoState.orderList.clear();
+      Future.delayed(Duration(seconds: 1)).then((_) {
+        _refreshVerticalBarchart();
+      });
+    } else {
+      Configuration.eventHubConsumerClientApplicationService!
+          .closeSubscription(AutomaticDemoState.subscription!)
+          .then((value) {
+        AutomaticDemoState.incomingEventStreamController!.close().then((value) {
+          Configuration.eventHubConsumerClientApplicationService!
+              .closeEventHubConsumerClient(
+                  AutomaticDemoState.eventHubConsumerClient!)
+              .then((value) {
+            AutomaticDemoState.incomingEventStreamController = null;
+            AutomaticDemoState.subscription = null;
+            AutomaticDemoState.eventHubConsumerClient = null;
+            AutomaticDemoState.maxMessagesSecond = 0;
+          });
+        });
+      });
+    }
   }
 }

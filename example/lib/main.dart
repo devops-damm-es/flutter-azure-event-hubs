@@ -5,6 +5,7 @@ import 'package:flutter_azure_event_hubs/Application/IClientSecretCredentialAppl
 import 'package:flutter_azure_event_hubs/Application/IEventHubConsumerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/IEventHubProducerClientApplicationService.dart';
 import 'package:flutter_azure_event_hubs/Application/ISchemaRegistryClientApplicationService.dart';
+import 'package:flutter_azure_event_hubs_example/Application/Mappers/IOrderMapperService.dart';
 import 'package:flutter_azure_event_hubs_example/Configuration.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/AutomaticDemoControl.dart';
 import 'package:flutter_azure_event_hubs_example/Presentation/Widgets/Controls/ManualDemoControl.dart';
@@ -36,6 +37,9 @@ Future<void> main() async {
       IoC.Container.resolve<ISchemaRegistryClientApplicationService>();
   Configuration.avroSerializerApplicationService =
       IoC.Container.resolve<IAvroSerializerApplicationService>();
+
+  Configuration.orderMapperService =
+      IoC.Container.resolve<IOrderMapperService>();
 
   runApp(const MyApp());
 }
