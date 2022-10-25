@@ -18,6 +18,7 @@ import 'package:vertical_barchart/vertical-barchart.dart';
 import 'package:vertical_barchart/vertical-barchartmodel.dart';
 import 'package:vertical_barchart/vertical-legend.dart';
 import 'package:flinq/flinq.dart';
+import 'package:wakelock/wakelock.dart';
 
 class AutomaticDemoControl extends StatefulWidget {
   @override
@@ -260,6 +261,7 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
   }
 
   void _startAutomaticDemo() {
+    Wakelock.enable();
     AutomaticDemoState.isInitializing = true;
     Configuration.eventHubProducerClientApplicationService!
         .createEventHubProducerClient(Configuration.connectionString,
@@ -326,6 +328,7 @@ class _AutomaticDemoControlState extends State<AutomaticDemoControl> {
                     AutomaticDemoState.eventHubProducerClient = null;
                     AutomaticDemoState.isStarted = false;
                     AutomaticDemoState.stopRequest = false;
+                    Wakelock.disable();
                   });
                 });
               }

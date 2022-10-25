@@ -36,6 +36,7 @@ dependencies:
   uuid: 3.0.6
   vertical_barchart: 2.0.0+2
   flinq: 2.0.2
+  wakelock: 0.6.2
   flutter_azure_event_hubs:
     path: ../    
 
